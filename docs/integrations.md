@@ -16,14 +16,15 @@ cli-pet disconnect codex      # 연결 해제
 |---|---|---|---|
 | **Claude Code** (터미널) | `cli-pet connect claude` | `~/.claude/settings.json` | ✅ 직접 확인 |
 | Claude Code VS Code·JetBrains 확장, 데스크톱 앱 | Claude Code를 연결하면 같이 적용 | 같은 파일 | 📄 공식 문서 기준 ("어디서 실행해도 같은 훅") |
-| **Cursor** (IDE 에이전트) | Claude Code를 연결하면 같이 적용 | Cursor가 `~/.claude/settings.json` 훅을 기본으로 가져옴 | 📄 문서 기준 |
+| **Cursor** (IDE 에이전트) | Claude Code를 연결하면 같이 적용 | Cursor가 `~/.claude/settings.json` 훅을 기본으로 가져옴 | ✅ Cursor 3.15.6에서 확인 (세션 시작 → 생각 중 → 명령 실행 → 완료) |
 | **OpenAI Codex** (CLI, IDE 확장, 앱) | `cli-pet connect codex` 후 Codex에서 `/hooks`로 한 번 **신뢰** | `~/.codex/hooks.json` | ✅ CLI 0.157.1에서 확인 (세션 시작 → 생각 중 → 명령 실행 → 완료) |
 | **GitHub Copilot CLI** | `cli-pet connect copilot` | `~/.copilot/hooks/cli-pet.json` (전용 파일) | 📄 문서 기준 |
 | **Gemini CLI** | `cli-pet connect gemini` (훅이 꺼져 있으면 `/hooks enable-all`) | `~/.gemini/settings.json` | 📄 문서 기준. 개인 계정은 Google이 Gemini CLI 지원을 끝내서 확인하지 못했어요 (기업 계정용) |
 
 - ✅ 직접 확인: 실제로 연결해서 펫이 반응하는 것까지 봤어요.
 - 📄 문서 기준: 공식 문서에 있는 훅 형식과 예시 데이터로 CLIPet이 올바르게 읽는 것까지 확인했어요. 그 도구를 실제로 돌려서 확인하지는 않았어요. 안 되면 [이슈](https://github.com/APapeIsName/cli-pet/issues)로 알려 주세요.
-- **Cursor를 따로 연결하지 않는 이유:** Cursor가 Claude Code 훅을 이미 가져오기 때문에, 따로 넣으면 같은 알림이 두 번 가요. 다만 가져온 훅에는 알림(권한 요청) 이벤트가 없어서, Cursor에서는 "나 좀 봐줘" 상태가 나오지 않아요.
+- **Cursor를 따로 연결하지 않는 이유:** Cursor가 Claude Code 훅을 이미 가져오기 때문에, 따로 넣으면 같은 알림이 두 번 가요. 가져온 훅이지만 이벤트 이름은 Cursor식(`sessionStart`, `beforeSubmitPrompt`, `preToolUse`, `stop`)으로 와요. CLIPet이 이름을 맞춰 읽어요. 알림(권한 요청) 이벤트는 가져오지 않아서, Cursor에서는 "나 좀 봐줘" 상태가 나오지 않아요.
+- **Codex CLI 0.157.1:** 확인할 때는 `--dangerously-bypass-hook-trust`로 신뢰 단계를 건너뛰었어요. 평소에는 `/hooks`에서 한 번 신뢰해야 훅이 돌아요.
 - **Codex:** 최근 데스크톱 앱 업데이트 뒤 훅이 실행되지 않는다는 보고가 있어요 ([openai/codex#21639](https://github.com/openai/codex/issues/21639)).
 
 ## 설정 몇 줄로 되는 도구
