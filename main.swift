@@ -1137,8 +1137,19 @@ let claudeSettingsURL = URL(fileURLWithPath: env["CLI_PET_CLAUDE_SETTINGS"]
     ?? NSHomeDirectory() + "/.claude/settings.json")
 let agentURL = URL(fileURLWithPath: env["CLI_PET_LAUNCH_AGENT"]
     ?? NSHomeDirectory() + "/Library/LaunchAgents/local.cli-pet.plist")
-let exePath = URL(fileURLWithPath: Bundle.main.executablePath ?? CommandLine.arguments[0])
-    .resolvingSymlinksInPath().path
+let exePath = stablePath(URL(fileURLWithPath: Bundle.main.executablePath ?? CommandLine.arguments[0])
+    .resolvingSymlinksInPath().path)
+
+// Homebrew는 버전마다 Cellar/<이름>/<버전>/ 에 설치하고 opt/<이름> 링크를 최신 버전으로 옮긴다.
+// 훅과 자동 실행이 업그레이드 뒤에도 살아 있도록 opt 경로를 쓴다.
+func stablePath(_ path: String) -> String {
+    let parts = path.components(separatedBy: "/Cellar/")
+    guard parts.count == 2 else { return path }
+    let rest = parts[1].split(separator: "/", maxSplits: 2).map(String.init)  // 이름, 버전, 나머지
+    guard rest.count == 3 else { return path }
+    let opt = "\(parts[0])/opt/\(rest[0])/\(rest[2])"
+    return FileManager.default.fileExists(atPath: opt) ? opt : path
+}
 let hookCommand = "'\(exePath)' hook"
 
 // JSON 순서와 들여쓰기를 지키려고 JS로 편집. 이 펫이 넣은 항목만 건드림.
@@ -1314,7 +1325,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 let usage = """
 사용법:
-  cli-pet            펫 띄우기
+  cli-pet            펫 띄우기 (이 터미널에 붙어서 실행)
+  cli-pet start      펫 띄우기 (터미널과 분리)
   cli-pet say <글>   펫이 말하게 하기
   cli-pet hook       Claude Code 훅용 (stdin JSON)
   명령 | cli-pet pipe 명령 출력을 펫이 보여주기
@@ -1326,6 +1338,15 @@ var args = Array(CommandLine.arguments.dropFirst())
 switch args.first {
 case "hook":
     runHook()
+case "start":
+    // 앱 번들을 open 으로 띄워 터미널을 닫아도 펫이 남게 한다
+    let app = URL(fileURLWithPath: exePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let open = Process()
+    open.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+    open.arguments = [app.pathExtension == "app" ? app.path : exePath]
+    try? open.run()
+    open.waitUntilExit()
+    exit(open.terminationStatus)
 case "install":
     exit(runSetup(true, hooks: !args.contains("--no-hooks")))
 case "uninstall":

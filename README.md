@@ -9,24 +9,47 @@ Claude Code를 연결하면 지금 무슨 일을 하는지 말풍선으로 알�
 
 ## 설치
 
-**필요한 것:** macOS, Apple 개발 도구(Xcode Command Line Tools). 개발 도구가 없으면 설치 스크립트가 설치 창을 띄워 줘요.
+**필요한 것:** macOS, Apple 개발 도구(Xcode Command Line Tools). 설치할 때 컴퓨터에서 직접 빌드해요.
+
+### Homebrew (추천)
+
+```bash
+brew install APapeIsName/tap/cli-pet
+cli-pet install      # Claude Code 연결 + 로그인할 때 자동 실행 (원본 설정은 백업)
+cli-pet start        # 펫 띄우기
+```
+
+- 플러그인으로 연결하려면 `cli-pet install --no-hooks` 로 설치한 뒤 아래 [플러그인](#claude-code-플러그인)을 보세요.
+- 업데이트: `brew upgrade cli-pet`
+- 지우기: `cli-pet uninstall` 후 `brew uninstall cli-pet`
+
+### curl 한 줄
+
+Homebrew가 없다면:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/APapeIsName/cli-pet/main/install.sh | bash
+```
+
+앱을 빌드해서 `~/Applications/CLIPet.app`에 넣고, Claude Code와 어떻게 연결할지 물어봐요.
+
+1. **바로 연결**: `~/.claude/settings.json`에 훅을 추가해요. 원본은 `settings.json.cli-pet-backup`으로 백업해요.
+2. **플러그인으로 연결**: 설정 파일은 건드리지 않아요.
+3. **연결하지 않기**
+
+물어보지 않게 하려면 `... | CLI_PET_CONNECT=2 bash` 처럼 번호를 미리 줄 수 있어요.
+
+- 지우기: `~/Applications/CLIPet.app/Contents/MacOS/cli-pet uninstall` 후 `rm -rf ~/Applications/CLIPet.app ~/.cli-pet`
+
+### 직접 받아서 설치
 
 ```bash
 git clone https://github.com/APapeIsName/cli-pet.git
 cd cli-pet
-./install.command
+./install.command      # Finder에서 더블클릭해도 돼요. 지우기는 uninstall.command
 ```
 
-Finder에서 `install.command`를 더블클릭해도 돼요. 설치 스크립트는 이런 일을 해요.
-
-1. 앱을 빌드해서 `~/Applications/CLIPet.app`에 넣어요.
-2. Claude Code와 어떻게 연결할지 물어봐요.
-   - **1) 바로 연결**: `~/.claude/settings.json`에 훅을 추가해요. 원본은 `settings.json.cli-pet-backup`으로 백업해요.
-   - **2) 플러그인으로 연결**: 설정 파일은 건드리지 않아요. 아래 [플러그인](#claude-code-플러그인)을 보세요.
-   - **3) 연결하지 않기**
-3. 로그인할 때 자동으로 뜨게 설정하고, 펫을 띄워요.
-
-> GitHub에서 ZIP으로 받았다면, 처음 한 번은 `install.command`를 **오른쪽 클릭 → 열기**로 실행해야 해요 (서명되지 않은 스크립트라서).
+> ZIP으로 받았다면, 처음 한 번은 `install.command`를 **오른쪽 클릭 → 열기**로 실행해야 해요 (서명되지 않은 스크립트라서).
 
 ### Claude Code 플러그인
 
@@ -40,12 +63,9 @@ Finder에서 `install.command`를 더블클릭해도 돼요. 설치 스크립트
 - 새로 여는 Claude Code 세션부터 적용돼요.
 - 세션이 시작될 때 펫이 떠 있지 않으면 자동으로 띄워요. 끄려면 환경 변수 `CLI_PET_NO_AUTOSTART=1`을 설정하세요.
 - 앱이 없으면 플러그인은 아무 일도 하지 않아요.
-- 설치 스크립트의 **1) 바로 연결**과 플러그인은 하나만 쓰세요. 둘 다 쓰면 같은 알림이 두 번 가요.
+- **바로 연결**(`cli-pet install`, 설치 스크립트의 1번)과 플러그인은 하나만 쓰세요. 둘 다 쓰면 같은 알림이 두 번 가요.
 
-### 지우기
-
-- `uninstall.command`를 실행하면 앱, 훅, 자동 실행 설정, 저장된 설정(`~/.cli-pet`)을 모두 지워요.
-- 플러그인은 Claude Code에서 `/plugin uninstall cli-pet@cli-pet`으로 지워요.
+플러그인은 Claude Code에서 `/plugin uninstall cli-pet@cli-pet`으로 지워요.
 
 ## 쓰는 법
 
@@ -57,9 +77,10 @@ Finder에서 `install.command`를 더블클릭해도 돼요. 설치 스크립트
 | 90초 동안 가만히 | 잠들어요 |
 | 오른쪽 클릭 | 메뉴: 펫 바꾸기, 구석으로 보내기, Claude Code 연결, 로그인 시 자동 실행, 종료 |
 
-터미널에서도 부를 수 있어요 (`~/Applications/CLIPet.app/Contents/MacOS/cli-pet`):
+터미널에서도 부를 수 있어요 (Homebrew로 설치했다면 `cli-pet`, 아니면 `~/Applications/CLIPet.app/Contents/MacOS/cli-pet`):
 
 ```bash
+cli-pet start                 # 펫 띄우기
 cli-pet say "안녕"            # 펫이 말하게 하기
 npm test | cli-pet pipe       # 명령 출력을 펫이 말풍선으로 보여주기 (출력은 그대로 터미널에도 나옴)
 ```

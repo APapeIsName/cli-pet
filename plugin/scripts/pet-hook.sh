@@ -4,7 +4,8 @@
 input="$(cat)"
 
 app=""
-for candidate in "${CLI_PET_APP:-}" "$HOME/Applications/CLIPet.app" "/Applications/CLIPet.app"; do
+for candidate in "${CLI_PET_APP:-}" "$HOME/Applications/CLIPet.app" "/Applications/CLIPet.app" \
+    "/opt/homebrew/opt/cli-pet/libexec/CLIPet.app" "/usr/local/opt/cli-pet/libexec/CLIPet.app"; do
   if [ -n "$candidate" ] && [ -x "$candidate/Contents/MacOS/cli-pet" ]; then
     app="$candidate"
     break

@@ -15,4 +15,5 @@ pkill -f "CLIPet.app/Contents/MacOS/cli-pet" 2>/dev/null || true
 rm -rf "$APP" "$HOME/.cli-pet"
 echo "✓ 앱과 저장된 위치 정보 삭제"
 echo
-read -n 1 -s -r -p "아무 키나 누르면 닫혀요…"
+[ -t 0 ] && read -n 1 -s -r -p "아무 키나 누르면 닫혀요…"
+true
