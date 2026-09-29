@@ -4,7 +4,7 @@
 
 - `packs/<id>/` — 앱에 기본으로 들어가는 팩 (0군, 1군, 2군)
 - `packs-nc/<id>/` — 비상업 조건 팩 (3군). 따로 떼어낼 수 있게 폴더를 나눈다
-- `~/.cli-pet/packs/<id>/` — 사용자가 직접 넣는 팩 (앱에 포함하지 않음)
+- `~/.cli-pet/packs/<id>/` — **커스텀 팩**. 사용자가 직접 넣는 팩 (앱에 포함하지 않음). 만드는 법은 [custom-packs.md](custom-packs.md)
 
 ```
 packs/gopher/
@@ -17,7 +17,7 @@ packs/gopher/
 
 ## 분류와 이름 짓기
 
-팩은 두 축으로 분류한다. **라이선스 축**(`group`, 0~3군)과 **내용 축**(`category` ▸ `series`)이다. 앱 메뉴는 내용 축으로 보여준다: `펫 바꾸기 ▸ 분류 ▸ 시리즈 ▸ 펫`.
+팩은 두 축으로 분류한다. **라이선스 축**(`group`, 0~3군)과 **내용 축**(`category` ▸ `series`)이다. 앱 메뉴는 기본 팩과 커스텀 팩을 나누고, 각각 내용 축으로 보여준다: `펫 바꾸기 ▸ (기본 팩 | 커스텀 팩) ▸ 분류 ▸ 시리즈 ▸ 펫`.
 
 **id = `<category>-<series>-<캐릭터>`** (소문자, 하이픈). 폴더 이름도 같게 한다.
 
@@ -37,7 +37,7 @@ packs/gopher/
 - 시리즈 이름과 캐릭터 이름이 같으면 한 번만 쓴다 (`original-sprout`, `meme-nyancat`).
 - `series`는 프로젝트나 작품 단위다: `rust`, `go`, `linux`, `java`, `zig`, `cncf`, `kotlin`, `android`, `deno`, `fluent`, `oneko`, `lostark`, `touhou`, `crypton`, `zunko`, `unity`, `pokemon` …
 - 같은 시리즈에 팩이 둘 이상이면 메뉴에서 시리즈 폴더로 묶인다 (예: 동물 ▸ Fluent Emoji ▸ 고양이, 강아지…).
-- 사용자 팩도 같은 규칙을 권장한다. 분류가 없거나 모르는 값이면 `etc`로 들어간다.
+- 커스텀 팩도 같은 규칙을 권장한다. 분류가 없거나 모르는 값이면 `etc`로 들어간다.
 - 코드로 그리는 0군 캐릭터(새싹, 실제 동물)는 `main.swift`의 `creatures` 목록에 있다. 폴더가 아니지만 id 규칙은 같다.
 
 ## pack.json
@@ -83,6 +83,7 @@ packs/gopher/
 | `size` | | 화면에 보이는 높이, pt 단위 (기본 80) |
 | `fps` | | 프레임 배열의 재생 속도 (기본 6) |
 | `squash` | | `false`면 찌그러짐·늘이기 모션을 끈다 (기본 `true`) |
+| `zzz` | | `true`면 `sleep` 포즈가 있어도 잘 때 zzz를 그린다 (기본: `sleep` 포즈가 없을 때만) |
 | `fit` | | `"each"`면 포즈마다 따로 `size` 높이에 맞춘다. 원본 크기가 제각각인 팩용 (기본: 모든 포즈에 `normal` 기준 배율) |
 | `poses` | ○ | 포즈 이름 → 파일 하나, 또는 프레임 배열. `normal`만 필수 |
 

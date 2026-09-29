@@ -97,12 +97,22 @@ npm test | cli-pet pipe       # 명령 출력을 펫이 말풍선으로 보여�
 
 자체 캐릭터와 동물은 코드로 그려서 모든 표정이 있어요. 다른 팩은 권리자가 공식으로 배포한 그림을 그대로 쓰기 때문에, 그림이 없는 표정은 비슷한 표정으로 대신해요.
 
-### 내 팩 넣기
+메뉴는 **기본 팩**(앱에 들어 있는 것)과 **커스텀 팩**(직접 넣은 것)으로 나뉘어 있어요.
 
-오른쪽 클릭 → 펫 바꾸기 → **내 팩 폴더 열기…** 를 누르고, 그 폴더(`~/.cli-pet/packs/`)에 팩 폴더를 넣으면 돼요. 형식은 [docs/pack-format.md](docs/pack-format.md)를 보세요. 넣은 그림의 권리는 넣은 사람이 확인해야 해요.
+### 커스텀 팩 만들기
+
+포즈 이름으로 된 PNG(`normal.png`, `happy.png` …)를 한 폴더에 모은 다음:
+
+```bash
+cli-pet pack new anime-myseries-mychar ~/Desktop/내그림폴더   # 팩 만들기
+cli-pet pack check anime-myseries-mychar                      # 검사
+```
+
+펫 오른쪽 클릭 → 펫 바꾸기 → 커스텀 팩에 나타나요. 자세한 방법은 [docs/custom-packs.md](docs/custom-packs.md)를 보세요. 넣은 그림의 권리는 넣은 사람이 확인해야 하고, 유명 캐릭터 팬아트는 공유하지 마세요.
 
 ## 문서
 
+- [docs/custom-packs.md](docs/custom-packs.md) — 커스텀 팩 만들기
 - [docs/pack-format.md](docs/pack-format.md) — 팩 형식, 분류와 이름 짓는 규칙
 - [docs/animation-spec.md](docs/animation-spec.md) — 상태, 포즈, 트리거 분류
 - [docs/ip-research.md](docs/ip-research.md) — 캐릭터 IP 사용 가능 여부 조사

@@ -113,6 +113,7 @@ struct PackInfo: Decodable {
     var size: CGFloat?
     var fps: Double?
     var squash: Bool?
+    var zzz: Bool?    // true면 sleep 포즈가 있어도 zzz를 그린다
     var fit: String?  // "each"면 포즈마다 size 높이에 맞춘다 (원본 크기가 제각각인 팩용)
     var category: String?
     var series: String?
@@ -237,8 +238,8 @@ func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> RGB { RGB(r: r, g: g, b: b
 
 struct Creature {
     enum Ears { case none, pointy, floppy, round, long }
-    enum Tail { case none, thin, wag, fluffy, puff }
-    enum Mouth { case smile, cat, dog, nose, beak, bill }
+    enum Tail { case none, thin, wag, fluffy, puff, zigzag }
+    enum Mouth { case smile, cat, dog, nose, beak, bill, none }
     enum Mark { case none, leaf, stripes, belly, muzzle, face }
     enum Back { case none, quills, shell }
     var id: String
@@ -253,6 +254,11 @@ struct Creature {
     var back = Back.none, backColor = rgb(0.45, 0.32, 0.24)  // 몸 뒤 가시·등껍질
     var feet: RGB? = nil
     var whiskers = false, tuft = false
+    var earTip: RGB? = nil, earSpread: CGFloat = 0     // 귀 끝 색, 긴 귀를 바깥으로 벌리는 정도
+    var cheek: RGB? = nil, cheekSize: CGFloat = 1      // 볼 색과 크기 (0이면 볼 없음)
+    var nose: RGB? = nil                               // 코 색 (입이 none이면 코만 그림)
+    var bow: RGB? = nil                                // 머리 리본
+    var brows = false
     var category: String { series == "sprout" ? "original" : "animal" }
     // 몸 위로 튀어나오는 부분(귀, 새싹) 높이. 말풍선 위치에 쓴다
     var headroom: CGFloat {
@@ -494,17 +500,14 @@ final class PetView: NSView {
         NSMenu.popUpContextMenu(menu, with: e, for: self)
     }
 
-    // 펫 바꾸기 ▸ 분류 ▸ (시리즈 ▸) 펫
+    // 펫 바꾸기 ▸ 기본 팩 / 커스텀 팩 ▸ 분류 ▸ (시리즈 ▸) 펫
     func packMenuItem() -> NSMenuItem {
         packs = findPacks().map { found in packs.first { $0.info.id == found.info.id && $0.dir == found.dir } ?? found }
         let current = pack?.info.id ?? creature.id
         let all = entries
         let root = NSMenu()
         func petItem(_ e: PetEntry) -> NSMenuItem {
-            var title = e.name
-            if e.group == 3 { title += "  · 비상업" }
-            if e.isUser { title += "  · 내 팩" }
-            let item = NSMenuItem(title: title, action: #selector(pickPack(_:)), keyEquivalent: "")
+            let item = NSMenuItem(title: e.group == 3 ? e.name + "  · 비상업" : e.name, action: #selector(pickPack(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = e.id
             item.state = e.id == current ? .on : .off
@@ -518,29 +521,56 @@ final class PetView: NSView {
             if items.contains(where: { $0.state == .on }) { item.state = .on }
             return item
         }
-        for (cat, label) in categoryOrder {
-            let inCat = all.filter { $0.category == cat }
-            guard !inCat.isEmpty else { continue }
-            var seriesOrder: [String] = []
-            for e in inCat where !seriesOrder.contains(e.series) { seriesOrder.append(e.series) }
-            var items: [NSMenuItem] = []
-            for s in seriesOrder {
-                let inSeries = inCat.filter { $0.series == s }
-                if inSeries.count > 1 && seriesOrder.count > 1 {
-                    items.append(folder(inSeries[0].seriesName, inSeries.map(petItem)))
-                } else {
-                    items += inSeries.map(petItem)
+        func tree(_ list: [PetEntry]) -> [NSMenuItem] {
+            var out: [NSMenuItem] = []
+            for (cat, label) in categoryOrder {
+                let inCat = list.filter { $0.category == cat }
+                guard !inCat.isEmpty else { continue }
+                var seriesOrder: [String] = []
+                for e in inCat where !seriesOrder.contains(e.series) { seriesOrder.append(e.series) }
+                var items: [NSMenuItem] = []
+                for s in seriesOrder {
+                    let inSeries = inCat.filter { $0.series == s }
+                    if inSeries.count > 1 && seriesOrder.count > 1 {
+                        items.append(folder(inSeries[0].seriesName, inSeries.map(petItem)))
+                    } else {
+                        items += inSeries.map(petItem)
+                    }
                 }
+                out.append(folder(label, items))
             }
-            root.addItem(folder(label, items))
+            return out
         }
+        func header(_ title: String) {
+            let h = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+            h.isEnabled = false
+            root.addItem(h)
+        }
+        header("기본 팩")
+        tree(all.filter { !$0.isUser }).forEach(root.addItem)
         root.addItem(.separator())
-        let open = NSMenuItem(title: "내 팩 폴더 열기…", action: #selector(openUserPacks), keyEquivalent: "")
+        header("커스텀 팩")
+        let custom = tree(all.filter { $0.isUser })
+        if custom.isEmpty {
+            let none = NSMenuItem(title: "아직 없어요", action: nil, keyEquivalent: "")
+            none.isEnabled = false
+            root.addItem(none)
+        } else {
+            custom.forEach(root.addItem)
+        }
+        let open = NSMenuItem(title: "커스텀 팩 폴더 열기…", action: #selector(openUserPacks), keyEquivalent: "")
         open.target = self
         root.addItem(open)
+        let help = NSMenuItem(title: "커스텀 팩 만드는 법…", action: #selector(openPackHelp), keyEquivalent: "")
+        help.target = self
+        root.addItem(help)
         let item = NSMenuItem(title: "펫 바꾸기", action: nil, keyEquivalent: "")
         item.submenu = root
         return item
+    }
+
+    @objc func openPackHelp() {
+        NSWorkspace.shared.open(URL(string: "https://github.com/APapeIsName/cli-pet/blob/main/docs/custom-packs.md")!)
     }
 
     @objc func pickPack(_ sender: NSMenuItem) {
@@ -646,7 +676,7 @@ final class PetView: NSView {
         }
         ctx.restoreGState()
 
-        if sleeping && pack?.has("sleep") != true { drawZzz(base: base) }
+        if sleeping && (pack?.has("sleep") != true || pack?.info.zzz == true) { drawZzz(base: base) }
     }
 
     func currentPose(dizzy: Bool, happy: Bool) -> String {
@@ -722,9 +752,14 @@ final class PetView: NSView {
         ctx.fillEllipse(in: CGRect(x: -w * 0.32, y: h * 0.66, width: 10, height: 6))
 
         // 볼
-        ctx.setFillColor(NSColor(red: 1, green: 0.45, blue: 0.5, alpha: 0.45).cgColor)
-        ctx.fillEllipse(in: CGRect(x: -w * 0.36 - 4, y: h * 0.30, width: 9, height: 5))
-        ctx.fillEllipse(in: CGRect(x: w * 0.36 - 5, y: h * 0.30, width: 9, height: 5))
+        if c.cheekSize > 0 {
+            ctx.setFillColor(c.cheek.map { $0.cg.copy(alpha: 0.9)! } ?? NSColor(red: 1, green: 0.45, blue: 0.5, alpha: 0.45).cgColor)
+            let cw = 9 * c.cheekSize, ch = 5 * c.cheekSize
+            ctx.fillEllipse(in: CGRect(x: -w * 0.36 - cw / 2, y: h * 0.325 - ch / 2, width: cw, height: ch))
+            ctx.fillEllipse(in: CGRect(x: w * 0.36 - cw / 2, y: h * 0.325 - ch / 2, width: cw, height: ch))
+        }
+        if let bow = c.bow { drawBow(ctx, c, bow.cg) }
+        if c.brows { drawBrows(ctx, c) }
 
         if c.whiskers { drawWhiskers(ctx, c) }
         drawEyes(ctx, c, dizzy: dizzy, happy: happyFace)
@@ -790,10 +825,24 @@ final class PetView: NSView {
                 ctx.fillPath()
             case .long:
                 let droop: CGFloat = sleeping || mood == "error" ? 0.5 : 0.12 + CGFloat(sin(t * 1.8 + Double(s))) * 0.04
-                fillStroke(ctx, ellipse(s * w * 0.17, h * 1.18, 13, 34, rot: -s * droop), c.top.cg)
-                ctx.addPath(ellipse(s * w * 0.17, h * 1.18, 6, 24, rot: -s * droop))
-                ctx.setFillColor(c.inner.cg)
-                ctx.fillPath()
+                let rot = -s * (droop + c.earSpread)
+                let cx = s * (w * 0.17 + c.earSpread * 16), cy = h * 1.18 - c.earSpread * 6
+                let ear = ellipse(cx, cy, 13, 34, rot: rot)
+                fillStroke(ctx, ear, c.top.cg)
+                if let tip = c.earTip {
+                    ctx.saveGState()
+                    ctx.addPath(ear)
+                    ctx.clip()
+                    ctx.addPath(ellipse(cx - sin(rot) * 15, cy + cos(rot) * 15, 18, 14, rot: rot))
+                    ctx.setFillColor(tip.cg)
+                    ctx.fillPath()
+                    ctx.restoreGState()
+                    ctx.addPath(ear); ctx.setStrokeColor(inkColor); ctx.setLineWidth(2); ctx.strokePath()
+                } else {
+                    ctx.addPath(ellipse(cx, cy, 6, 24, rot: rot))
+                    ctx.setFillColor(c.inner.cg)
+                    ctx.fillPath()
+                }
             case .floppy:
                 let flap = CGFloat(sin(t * (mood == "working" ? 8 : 2) + Double(s))) * 0.06
                 fillStroke(ctx, ellipse(s * w * 0.43, h * 0.62, 15, 27, rot: s * (0.35 + flap)), c.patch.cg)
@@ -836,6 +885,17 @@ final class PetView: NSView {
             ctx.setStrokeColor(inkColor); ctx.setLineWidth(2); ctx.strokePath()
         case .puff:
             fillStroke(ctx, ellipse(w * 0.44, h * 0.16, 14, 14), c.patch.cg)
+        case .zigzag:
+            let wag = CGFloat(sin(t * (happy ? 10 : 2.5))) * 0.08
+            let pts: [(CGFloat, CGFloat)] = [(0.30, 0.18), (0.52, 0.30), (0.46, 0.44), (0.70, 0.62), (0.66, 0.82), (0.98, 1.02),
+                                             (0.80, 0.70), (0.84, 0.54), (0.62, 0.38), (0.66, 0.24), (0.38, 0.08)]
+            let p = CGMutablePath()
+            for (i, (x, y)) in pts.enumerated() {
+                let pt = CGPoint(x: w * x, y: h * y).applying(CGAffineTransform(rotationAngle: wag))
+                if i == 0 { p.move(to: pt) } else { p.addLine(to: pt) }
+            }
+            p.closeSubpath()
+            fillStroke(ctx, p, c.top.cg)
         case .none:
             break
         }
@@ -922,6 +982,26 @@ final class PetView: NSView {
         p.addQuadCurve(to: CGPoint(x: 3 + sway, y: h + 9), control: CGPoint(x: -4, y: h + 8))
         p.addQuadCurve(to: CGPoint(x: 4, y: h - 2), control: CGPoint(x: 8 + sway, y: h + 3))
         fillStroke(ctx, p, c.bottom.cg, width: 1.6)
+    }
+
+    func drawBow(_ ctx: CGContext, _ c: Creature, _ color: CGColor) {
+        let x = -c.w * 0.3, y = c.h * 0.94
+        fillStroke(ctx, ellipse(x - 7, y + 3, 15, 11, rot: 0.45), color, width: 1.8)
+        fillStroke(ctx, ellipse(x + 7, y - 3, 15, 11, rot: 0.45), color, width: 1.8)
+        fillStroke(ctx, ellipse(x, y, 7, 7), color, width: 1.8)
+    }
+
+    func drawBrows(_ ctx: CGContext, _ c: Creature) {
+        let y = c.h * c.eyeY + 8
+        ctx.setStrokeColor(inkColor)
+        ctx.setLineWidth(3)
+        ctx.setLineCap(.round)
+        for s in [-1.0, 1.0] as [CGFloat] {
+            let x = s * c.w * c.eyeGap
+            ctx.move(to: CGPoint(x: x - 5, y: y + (s < 0 ? 1 : -1)))
+            ctx.addLine(to: CGPoint(x: x + 5, y: y + (s < 0 ? -1 : 1)))
+        }
+        ctx.strokePath()
     }
 
     func drawWhiskers(_ ctx: CGContext, _ c: Creature) {
@@ -1011,7 +1091,7 @@ final class PetView: NSView {
             }
         case .cat, .nose:
             let ny = h * 0.39
-            ctx.setFillColor(c.mouth == .cat ? CGColor(red: 0.95, green: 0.5, blue: 0.55, alpha: 1) : CGColor(red: 0.9, green: 0.45, blue: 0.5, alpha: 1))
+            ctx.setFillColor(c.nose?.cg ?? (c.mouth == .cat ? CGColor(red: 0.95, green: 0.5, blue: 0.55, alpha: 1) : CGColor(red: 0.9, green: 0.45, blue: 0.5, alpha: 1)))
             let nose = CGMutablePath()
             nose.move(to: CGPoint(x: -3, y: ny + 1.5)); nose.addLine(to: CGPoint(x: 3, y: ny + 1.5)); nose.addLine(to: CGPoint(x: 0, y: ny - 1.5))
             nose.closeSubpath()
@@ -1049,6 +1129,10 @@ final class PetView: NSView {
                 fillStroke(ctx, bottom, orange, width: 1.2)
             }
             fillStroke(ctx, top, orange, width: 1.2)
+        case .none:
+            if let nose = c.nose {
+                fillStroke(ctx, ellipse(0, h * 0.38, 7, 5), nose.cg, width: 1.2)
+            }
         case .bill:
             // 넓적한 오리 부리. 웃거나 놀라면 벌어진다
             let by = h * 0.36
@@ -1244,7 +1328,7 @@ func runSetup(_ on: Bool, hooks: Bool = true) -> Int32 {
             try setHooks(on)
             print(on ? "✓ Claude Code 연결 (새로 여는 Claude Code 세션부터 적용)" : "✓ Claude Code 연결 해제")
         } else {
-            print("· Claude Code 설정 파일은 건드리지 않음 (플러그인으로 연결)")
+            print("· Claude Code 설정 파일은 건드리지 않음")
         }
         if on && hooks && FileManager.default.fileExists(atPath: claudeSettingsURL.path + ".cli-pet-backup") {
             print("  원래 설정 백업: \(claudeSettingsURL.path).cli-pet-backup")
@@ -1256,6 +1340,105 @@ func runSetup(_ on: Bool, hooks: Bool = true) -> Int32 {
         print("✗ \(error)")
         return 1
     }
+}
+
+// MARK: - 커스텀 팩 도구 (docs/custom-packs.md)
+
+let userPacksDir = stateDir.appendingPathComponent("packs")
+let requiredPoses = ["normal", "happy", "focus", "surprised", "sleep"]
+let recommendedPoses = ["blink", "dizzy", "think", "sad"]
+let optionalPoses = ["held", "walk"]
+
+func runPackCommand(_ a: [String]) -> Int32 {
+    switch a.first {
+    case "new":
+        guard a.count >= 2 else { print("사용법: cli-pet pack new <id> [그림 폴더]"); return 1 }
+        return packNew(a[1], from: a.count >= 3 ? URL(fileURLWithPath: a[2]) : nil)
+    case "check":
+        guard a.count >= 2 else { print("사용법: cli-pet pack check <id|폴더>"); return 1 }
+        return packCheck(a[1])
+    default:
+        print("사용법:\n  cli-pet pack new <id> [그림 폴더]\n  cli-pet pack check <id|폴더>")
+        return 1
+    }
+}
+
+// 그림 폴더에서 <포즈>.png 또는 <포즈>-1.png, <포즈>-2.png … 를 찾는다
+func findPoseFiles(in dir: URL) -> [String: [String]] {
+    let files = ((try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? []).filter { $0.lowercased().hasSuffix(".png") }.sorted {
+        $0.localizedStandardCompare($1) == .orderedAscending
+    }
+    var found: [String: [String]] = [:]
+    for pose in requiredPoses + recommendedPoses + optionalPoses {
+        let one = files.filter { $0.lowercased() == pose + ".png" }
+        let many = files.filter { $0.lowercased().hasPrefix(pose + "-") }
+        if !one.isEmpty { found[pose] = one } else if !many.isEmpty { found[pose] = many }
+    }
+    return found
+}
+
+func packNew(_ id: String, from: URL?) -> Int32 {
+    guard id.range(of: "^[a-z0-9]+(-[a-z0-9]+)*$", options: .regularExpression) != nil else {
+        print("✗ id는 영어 소문자, 숫자, 하이픈만 쓸 수 있어요. 예: anime-myseries-mychar")
+        return 1
+    }
+    let dir = userPacksDir.appendingPathComponent(id)
+    let fm = FileManager.default
+    if fm.fileExists(atPath: dir.path) { print("✗ 이미 있어요: \(dir.path)"); return 1 }
+    try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+    var poses: [String: Any] = [:]
+    if let from {
+        for (pose, files) in findPoseFiles(in: from) {
+            for f in files { try? fm.copyItem(at: from.appendingPathComponent(f), to: dir.appendingPathComponent(f)) }
+            poses[pose] = files.count == 1 ? files[0] : files
+        }
+    }
+    if poses["normal"] == nil { poses["normal"] = "normal.png" }
+    let parts = id.split(separator: "-").map(String.init)
+    let category = categoryOrder.contains { $0.id == parts[0] } ? parts[0] : "etc"
+    let info: [String: Any] = [
+        "id": id, "name": id, "category": category, "series": parts.count > 2 ? parts[1] : "custom",
+        "credit": "", "license": "개인 사용", "size": 80, "poses": poses,
+    ]
+    let data = try! JSONSerialization.data(withJSONObject: info, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
+    try? data.write(to: dir.appendingPathComponent("pack.json"))
+    print("✓ 만들었어요: \(dir.path)")
+    print("  pack.json의 name(메뉴 이름)과 credit(그림 출처)을 채워 주세요.")
+    _ = packCheck(dir.path)
+    return 0
+}
+
+func packCheck(_ arg: String) -> Int32 {
+    let dir = arg.contains("/") ? URL(fileURLWithPath: arg) : userPacksDir.appendingPathComponent(arg)
+    guard let data = try? Data(contentsOf: dir.appendingPathComponent("pack.json")) else {
+        print("✗ pack.json이 없어요: \(dir.path)"); return 1
+    }
+    let info: PackInfo
+    do { info = try JSONDecoder().decode(PackInfo.self, from: data) } catch {
+        print("✗ pack.json을 읽을 수 없어요: \(error)"); return 1
+    }
+    var ok = true
+    print("팩: \(info.name) (\(info.id)) · 분류 \(info.category ?? "etc") ▸ \(info.series ?? "-")")
+    if info.id != dir.lastPathComponent { print("  ! id(\(info.id))와 폴더 이름(\(dir.lastPathComponent))이 달라요") }
+    for (label, list) in [("필수", requiredPoses), ("권장", recommendedPoses), ("선택", optionalPoses)] {
+        var line: [String] = []
+        for pose in list {
+            guard let files = info.poses[pose]?.files else { line.append("\(pose) ✗"); continue }
+            let frames = files.map { loadFrames(dir.appendingPathComponent($0), 0.1).count }
+            if frames.contains(0) {
+                line.append("\(pose) ⚠︎파일 없음"); ok = false
+            } else {
+                let n = frames.reduce(0, +)
+                line.append(n > 1 ? "\(pose) ✓(\(n)프레임)" : "\(pose) ✓")
+            }
+        }
+        print("  \(label): " + line.joined(separator: "  "))
+    }
+    if info.poses["normal"] == nil { print("  ✗ normal 포즈는 꼭 있어야 해요"); ok = false }
+    let missing = requiredPoses.filter { info.poses[$0] == nil }
+    if !missing.isEmpty { print("  없는 필수 포즈는 비슷한 포즈로 대신해요 (docs/animation-spec.md).") }
+    print(ok ? "✓ 앱에서 쓸 수 있어요. 펫 오른쪽 클릭 → 펫 바꾸기 → 커스텀 팩" : "✗ 위 문제를 고쳐 주세요")
+    return ok ? 0 : 1
 }
 
 // MARK: - 앱
@@ -1330,6 +1513,8 @@ let usage = """
   cli-pet say <글>   펫이 말하게 하기
   cli-pet hook       Claude Code 훅용 (stdin JSON)
   명령 | cli-pet pipe 명령 출력을 펫이 보여주기
+  cli-pet pack new <id> [그림 폴더]   커스텀 팩 만들기
+  cli-pet pack check <id|폴더>       커스텀 팩 검사
   cli-pet install    Claude Code 연결 + 로그인 시 자동 실행 (--no-hooks: 연결은 빼고)
   cli-pet uninstall  위 설정 되돌리기
 """
@@ -1349,6 +1534,8 @@ case "start":
     exit(open.terminationStatus)
 case "install":
     exit(runSetup(true, hooks: !args.contains("--no-hooks")))
+case "pack":
+    exit(runPackCommand(Array(args.dropFirst())))
 case "uninstall":
     exit(runSetup(false))
 case "say":
