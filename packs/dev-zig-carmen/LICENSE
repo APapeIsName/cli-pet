@@ -1,0 +1,39 @@
+Carmen (Zig) 캐릭터 팩 (cli-pet)
+================================
+
+권리자
+  Zig 프로젝트 / ziglang/logo 저장소 기여자 (Zig Software Foundation 운영)
+  https://github.com/ziglang/logo
+
+라이선스
+  Creative Commons Attribution 4.0 International (CC BY 4.0)
+  요약: https://creativecommons.org/licenses/by/4.0/
+  전문: https://creativecommons.org/licenses/by/4.0/legalcode
+
+  근거 (https://github.com/ziglang/logo/blob/master/README.md 원문 인용):
+    "# Official Mascots
+     Licensed under the Attribution 4.0 International (CC BY 4.0).
+     Mascots are not gendered. Go ahead and adapt them to be masculine, feminine,
+     or anywhere in between."
+  (같은 저장소의 로고는 CC BY-SA 4.0으로 따로 라이선스되며 이 팩에 포함하지 않았다.
+   마스코트 라이선스는 2021-03-29 커밋 608770bf "Change license of mascots from
+   CC-BY-SA to CC-BY." 로 CC BY 4.0이 되었다.)
+
+필수 표기 문구
+  Carmen the Allocgator by the Zig project (https://github.com/ziglang/logo), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+
+출처 파일 (받은 날짜: 2026-09-29, master 브랜치)
+  normal.png <- https://github.com/ziglang/logo/blob/master/carmen.svg
+  (raw: https://raw.githubusercontent.com/ziglang/logo/master/carmen.svg)
+
+바꾼 점
+  - SVG를 PNG로 변환(rsvg-convert)했다.
+  - 투명 여백을 잘라내고, 긴 변이 512px이 되도록 축소했다.
+  - 그림 내용은 바꾸지 않았다. 공식 그림이 한 장뿐이라 normal 포즈만 있다.
+
+참고
+  원본 마스코트 그림 안(하네스)에 Zig 로고마크가 작게 그려져 있다. 마스코트 그림의
+  일부로 CC BY 4.0 파일에 포함된 것이며, 로고를 따로 떼어 쓰지 않았다. Zig 로고 자체의
+  사용 조건은 로고 라이선스(CC BY-SA 4.0)와 상표 관행을 따른다.
+
+비공식 팩입니다. Zig 프로젝트 및 Zig Software Foundation과 관련이 없으며 보증받지 않았습니다.

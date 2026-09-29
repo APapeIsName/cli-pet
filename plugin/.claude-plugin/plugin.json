@@ -1,0 +1,9 @@
+{
+  "name": "cli-pet",
+  "version": "0.1.0",
+  "description": "Claude Code가 하는 일을 CLIPet 데스크톱 펫이 말풍선으로 보여줍니다 (macOS).",
+  "author": {
+    "name": "APapeIsName"
+  },
+  "keywords": ["pet", "desktop", "macos", "fun"]
+}

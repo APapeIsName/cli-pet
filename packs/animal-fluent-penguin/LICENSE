@@ -1,0 +1,46 @@
+펭귄 (Fluent)
+
+비공식 팩입니다. Microsoft와 관련이 없으며 Microsoft가 보증하지 않습니다.
+
+권리자: Microsoft Corporation
+라이선스: MIT License (원본 저장소의 LICENSE 파일을 2026-09-29에 직접 확인함, 전문은 아래)
+표기 문구: Fluent Emoji © Microsoft Corporation (MIT) · 비공식
+받은 날짜: 2026-09-29
+원본 저장소:
+  - https://github.com/microsoft/fluentui-emoji-animated  (LICENSE: https://github.com/microsoft/fluentui-emoji-animated/blob/main/LICENSE)
+
+파일별 출처와 바꾼 점:
+  normal.png  ←  "Penguin" (Fluent Emoji Animated, APNG 256x256)
+    페이지: https://github.com/microsoft/fluentui-emoji-animated/blob/main/assets/Penguin/animated/penguin_animated.png
+    받은 URL: https://media.githubusercontent.com/media/microsoft/fluentui-emoji-animated/main/assets/Penguin/animated/penguin_animated.png
+    원본 SHA-256: 043b0e0ea174564980154862bada72c12422fc32f746613cac46b276737b9360
+    - 잘라내기: 원본 256x256 캔버스에서 x 2–251, y 43–240 영역만 남김 (빈 투명 여백 제거, 애니메이션 전 프레임을 합친 범위)
+    - 크기 조정: 0.7배 → 174x138px (CoreGraphics 고품질 보간)
+    - 형식: APNG 유지. 프레임 수·프레임별 지연 시간(42/1000초)·무한 반복은 원본 그대로. 무손실 PNG 압축으로 다시 인코딩(프레임 사이 바뀐 영역만 저장)
+    - 색 정보: sRGB 청크만 남김 (원본의 pHYs/gAMA 등 부가 청크는 빠짐)
+
+그림 내용은 새로 그리거나 고치지 않았습니다 (자르기·크기 조정·형식 변환만 함).
+
+------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) Microsoft Corporation.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE

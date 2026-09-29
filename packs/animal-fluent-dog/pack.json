@@ -1,0 +1,23 @@
+{
+  "id": "animal-fluent-dog",
+  "name": "강아지 (Fluent)",
+  "group": 1,
+  "category": "animal",
+  "series": "fluent",
+  "seriesName": "Fluent Emoji",
+  "tags": [
+    "3d",
+    "animated"
+  ],
+  "credit": "Fluent Emoji © Microsoft Corporation (MIT) · 비공식",
+  "license": "MIT",
+  "source": "https://github.com/microsoft/fluentui-emoji-animated",
+  "retrieved": "2026-09-29",
+  "pixel": false,
+  "size": 80,
+  "squash": true,
+  "poses": {
+    "normal": "normal.png",
+    "walk": "walk.png"
+  }
+}

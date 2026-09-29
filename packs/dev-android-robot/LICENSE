@@ -1,0 +1,37 @@
+Android 로봇 캐릭터 팩 (cli-pet)
+================================
+
+권리자
+  Google LLC
+
+라이선스
+  Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+  요약: https://creativecommons.org/licenses/by/3.0/
+  전문: https://creativecommons.org/licenses/by/3.0/legalcode
+
+  근거 (https://developer.android.com/distribute/marketing-tools/brand-guidelines 원문 인용,
+  페이지 "Last updated 2026-08-07 UTC"):
+    "The green Android robot can be reproduced and/or modified as long as the
+     following Creative Commons attribution line is included in the creative:
+     "The Android robot is reproduced or modified from work created and shared by
+     Google and used according to terms described in the Creative Commons 3.0
+     Attribution License.""
+
+필수 표기 문구 (그대로 표시해야 함)
+  The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License.
+
+출처 파일 (받은 날짜: 2026-09-29, 위 브랜드 가이드라인 페이지의 "Android robot" 항목 다운로드 링크)
+  normal.png <- https://developer.android.com/static/images/brand/android-head_3D.svg
+
+바꾼 점
+  - SVG를 PNG로 변환(rsvg-convert)했다.
+  - 투명 여백을 잘라내고, 긴 변이 512px이 되도록 축소했다.
+  - 그림 내용은 바꾸지 않았다. 공식 그림이 머리 한 가지 모양뿐이라 normal 포즈만 있다.
+
+상표
+  같은 페이지 원문: "You may not file trademark applications for or claim trademark rights
+  to the Android robot logo or any derivatives thereof. Google retains all trademark rights
+  to the Android robot." 이 팩은 로봇에 대한 어떤 상표권도 주장하지 않는다.
+  "Android" 워드마크는 포함하지 않았다. Android is a trademark of Google LLC.
+
+비공식 팩입니다. Android 프로젝트 및 Google과 관련이 없으며 보증받지 않았습니다.

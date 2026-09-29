@@ -1,0 +1,28 @@
+{
+  "id": "dev-go-gopher",
+  "name": "Go Gopher",
+  "group": 1,
+  "category": "dev",
+  "series": "go",
+  "seriesName": "Go",
+  "tags": [
+    "vector"
+  ],
+  "credit": "Go Gopher by Renée French (CC BY 4.0)",
+  "license": "CC BY 4.0",
+  "source": "https://go.dev/blog/gopher",
+  "retrieved": "2026-09-29",
+  "pixel": false,
+  "size": 80,
+  "fps": 6,
+  "squash": true,
+  "poses": {
+    "normal": "normal.png",
+    "happy": "happy.png",
+    "focus": "focus.png",
+    "surprised": "surprised.png",
+    "think": "think.png",
+    "walk": "walk.png",
+    "eat": "eat.png"
+  }
+}

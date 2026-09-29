@@ -1,0 +1,39 @@
+{
+  "id": "animal-oneko-cat",
+  "name": "oneko 고양이",
+  "group": 1,
+  "category": "animal",
+  "series": "oneko",
+  "seriesName": "oneko",
+  "tags": [
+    "pixel"
+  ],
+  "credit": "oneko cat bitmaps from xneko by Masayuki Koba and oneko by Tatsuya Kato (public domain)",
+  "license": "Public domain",
+  "source": "https://sources.debian.org/src/oneko/1.2.sakura.6-16/",
+  "retrieved": "2026-09-29",
+  "pixel": true,
+  "size": 56,
+  "fps": 4,
+  "poses": {
+    "normal": "mati2.png",
+    "happy": "jare2.png",
+    "focus": [
+      "kaki1.png",
+      "kaki2.png"
+    ],
+    "surprised": "awake.png",
+    "sleep": [
+      "sleep1.png",
+      "sleep2.png"
+    ],
+    "tired": "mati3.png",
+    "yawn": [
+      "mati3.png"
+    ],
+    "walk": [
+      "right1.png",
+      "right2.png"
+    ]
+  }
+}

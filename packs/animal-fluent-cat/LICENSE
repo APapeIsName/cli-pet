@@ -1,0 +1,87 @@
+고양이 (Fluent)
+
+비공식 팩입니다. Microsoft와 관련이 없으며 Microsoft가 보증하지 않습니다.
+
+권리자: Microsoft Corporation
+라이선스: MIT License (원본 저장소의 LICENSE 파일을 2026-09-29에 직접 확인함, 전문은 아래)
+표기 문구: Fluent Emoji © Microsoft Corporation (MIT) · 비공식
+받은 날짜: 2026-09-29
+원본 저장소:
+  - https://github.com/microsoft/fluentui-emoji-animated  (LICENSE: https://github.com/microsoft/fluentui-emoji-animated/blob/main/LICENSE)
+  - https://github.com/microsoft/fluentui-emoji  (LICENSE: https://github.com/microsoft/fluentui-emoji/blob/main/LICENSE)
+
+파일별 출처와 바꾼 점:
+  normal.png  ←  "Cat face" (Fluent Emoji Animated, APNG 256x256)
+    페이지: https://github.com/microsoft/fluentui-emoji-animated/blob/main/assets/Cat%20face/animated/cat_face_animated.png
+    받은 URL: https://media.githubusercontent.com/media/microsoft/fluentui-emoji-animated/main/assets/Cat%20face/animated/cat_face_animated.png
+    원본 SHA-256: 31ad31b692a4621bd65181e9573eb18baf0e67381b31cdb129582455461b757d
+    - 잘라내기: 원본 256x256 캔버스에서 x 8–248, y 19–248 영역만 남김 (빈 투명 여백 제거, 팩 안 모든 포즈가 같은 영역을 써서 크기·바닥 위치가 맞음)
+    - 크기 조정: 0.7배 → 168x160px (CoreGraphics 고품질 보간)
+    - 형식: APNG 유지. 프레임 수·프레임별 지연 시간(42/1000초)·무한 반복은 원본 그대로. 무손실 PNG 압축으로 다시 인코딩(프레임 사이 바뀐 영역만 저장)
+    - 색 정보: sRGB 청크만 남김 (원본의 pHYs/gAMA 등 부가 청크는 빠짐)
+  happy.png  ←  "Grinning cat with smiling eyes" (Fluent Emoji Animated, APNG 256x256)
+    페이지: https://github.com/microsoft/fluentui-emoji-animated/blob/main/assets/Grinning%20cat%20with%20smiling%20eyes/animated/grinning_cat_with_smiling_eyes_animated.png
+    받은 URL: https://media.githubusercontent.com/media/microsoft/fluentui-emoji-animated/main/assets/Grinning%20cat%20with%20smiling%20eyes/animated/grinning_cat_with_smiling_eyes_animated.png
+    원본 SHA-256: e0bcd57fc08c604f2ccd5ea1d384a6913f0b26a481b9fd4286a6d7565a3c4795
+    - 잘라내기: 원본 256x256 캔버스에서 x 8–248, y 19–248 영역만 남김 (빈 투명 여백 제거, 팩 안 모든 포즈가 같은 영역을 써서 크기·바닥 위치가 맞음)
+    - 크기 조정: 0.7배 → 168x160px (CoreGraphics 고품질 보간)
+    - 형식: APNG 유지. 프레임 수·프레임별 지연 시간(42/1000초)·무한 반복은 원본 그대로. 무손실 PNG 압축으로 다시 인코딩(프레임 사이 바뀐 영역만 저장)
+    - 색 정보: sRGB 청크만 남김 (원본의 pHYs/gAMA 등 부가 청크는 빠짐)
+  focus.png  ←  "Cat with wry smile" (Fluent Emoji 3D, PNG 256x256)
+    페이지: https://github.com/microsoft/fluentui-emoji/blob/main/assets/Cat%20with%20wry%20smile/3D/cat_with_wry_smile_3d.png
+    받은 URL: https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Cat%20with%20wry%20smile/3D/cat_with_wry_smile_3d.png
+    원본 SHA-256: c0f18ad8b5805d10e8e0fcc86edce6764bbcb56b0f707bb1c9e66b10f2474358
+    - 잘라내기: 원본 256x256 캔버스에서 x 8–248, y 19–248 영역만 남김 (빈 투명 여백 제거, 팩 안 모든 포즈가 같은 영역을 써서 크기·바닥 위치가 맞음)
+    - 크기 조정: 0.7배 → 168x160px (CoreGraphics 고품질 보간)
+    - 형식: 정지 PNG 유지, 무손실로 다시 인코딩
+    - 색 정보: sRGB 청크만 남김 (원본의 pHYs/gAMA 등 부가 청크는 빠짐)
+  surprised.png  ←  "Weary cat" (Fluent Emoji 3D, PNG 256x256)
+    페이지: https://github.com/microsoft/fluentui-emoji/blob/main/assets/Weary%20cat/3D/weary_cat_3d.png
+    받은 URL: https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Weary%20cat/3D/weary_cat_3d.png
+    원본 SHA-256: 05e67896364a223f2cde2b1d0a1159f11ae1626ebd0ab79a147aa6c496876ca4
+    - 잘라내기: 원본 256x256 캔버스에서 x 8–248, y 19–248 영역만 남김 (빈 투명 여백 제거, 팩 안 모든 포즈가 같은 영역을 써서 크기·바닥 위치가 맞음)
+    - 크기 조정: 0.7배 → 168x160px (CoreGraphics 고품질 보간)
+    - 형식: 정지 PNG 유지, 무손실로 다시 인코딩
+    - 색 정보: sRGB 청크만 남김 (원본의 pHYs/gAMA 등 부가 청크는 빠짐)
+  sad.png  ←  "Crying cat" (Fluent Emoji 3D, PNG 256x256)
+    페이지: https://github.com/microsoft/fluentui-emoji/blob/main/assets/Crying%20cat/3D/crying_cat_3d.png
+    받은 URL: https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Crying%20cat/3D/crying_cat_3d.png
+    원본 SHA-256: bc68537a49704dd065f935c1c78efc63ab826a980c2ff112cf4c241ce5955b14
+    - 잘라내기: 원본 256x256 캔버스에서 x 8–248, y 19–248 영역만 남김 (빈 투명 여백 제거, 팩 안 모든 포즈가 같은 영역을 써서 크기·바닥 위치가 맞음)
+    - 크기 조정: 0.7배 → 168x160px (CoreGraphics 고품질 보간)
+    - 형식: 정지 PNG 유지, 무손실로 다시 인코딩
+    - 색 정보: sRGB 청크만 남김 (원본의 pHYs/gAMA 등 부가 청크는 빠짐)
+  sleep.png  ←  "Cat face" (Fluent Emoji Animated, APNG 256x256)
+    페이지: https://github.com/microsoft/fluentui-emoji-animated/blob/main/assets/Cat%20face/animated/cat_face_animated.png
+    받은 URL: https://media.githubusercontent.com/media/microsoft/fluentui-emoji-animated/main/assets/Cat%20face/animated/cat_face_animated.png
+    원본 SHA-256: 31ad31b692a4621bd65181e9573eb18baf0e67381b31cdb129582455461b757d
+    - 잘라내기: 원본 256x256 캔버스에서 x 8–248, y 19–248 영역만 남김 (빈 투명 여백 제거, 팩 안 모든 포즈가 같은 영역을 써서 크기·바닥 위치가 맞음)
+    - 크기 조정: 0.7배 → 168x160px (CoreGraphics 고품질 보간)
+    - 형식 변환: 움직이는 원본에서 12번째 프레임(0부터 셈, 눈을 감은 장면) 한 장만 꺼내 정지 PNG로 저장
+    - 색 정보: sRGB 청크만 남김 (원본의 pHYs/gAMA 등 부가 청크는 빠짐)
+
+그림 내용은 새로 그리거나 고치지 않았습니다 (자르기·크기 조정·형식 변환만 함).
+
+------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) Microsoft Corporation.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE

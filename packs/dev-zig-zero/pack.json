@@ -1,0 +1,22 @@
+{
+  "id": "dev-zig-zero",
+  "name": "Zero (Zig)",
+  "group": 1,
+  "category": "dev",
+  "series": "zig",
+  "seriesName": "Zig",
+  "tags": [
+    "vector"
+  ],
+  "credit": "Zero the Ziguana — Zig project (github.com/ziglang/logo), CC BY 4.0",
+  "license": "CC BY 4.0",
+  "source": "https://github.com/ziglang/logo/blob/master/zero.svg",
+  "retrieved": "2026-09-29",
+  "pixel": false,
+  "size": 80,
+  "fps": 6,
+  "squash": true,
+  "poses": {
+    "normal": "normal.png"
+  }
+}

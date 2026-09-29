@@ -1,0 +1,20 @@
+{
+  "id": "dev-linux-tux",
+  "name": "Tux",
+  "group": 1,
+  "category": "dev",
+  "series": "linux",
+  "seriesName": "Linux",
+  "tags": [
+    "vector"
+  ],
+  "credit": "Tux by Larry Ewing (lewing@isc.tamu.edu) and The GIMP; SVG by Garrett LeSage, refined by IFo Hancroft",
+  "license": "CC0 1.0",
+  "source": "https://github.com/garrett/Tux",
+  "retrieved": "2026-09-29",
+  "pixel": false,
+  "size": 80,
+  "poses": {
+    "normal": "normal.png"
+  }
+}

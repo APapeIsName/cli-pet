@@ -1,0 +1,29 @@
+{
+  "id": "dev-java-duke",
+  "name": "Duke",
+  "group": 1,
+  "category": "dev",
+  "series": "java",
+  "seriesName": "Java",
+  "tags": [
+    "vector"
+  ],
+  "credit": "Duke, the Java mascot (Sun Microsystems / Oracle, New BSD License)",
+  "license": "BSD-3-Clause (New BSD)",
+  "source": "https://github.com/openjdk/duke",
+  "retrieved": "2026-09-29",
+  "pixel": false,
+  "size": 80,
+  "fps": 6,
+  "squash": true,
+  "poses": {
+    "normal": "normal.png",
+    "happy": "happy.png",
+    "focus": "focus.png",
+    "surprised": "surprised.png",
+    "sleep": "sleep.png",
+    "think": "think.png",
+    "dizzy": "dizzy.png",
+    "talk": "talk.png"
+  }
+}

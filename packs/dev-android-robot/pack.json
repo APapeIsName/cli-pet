@@ -1,0 +1,22 @@
+{
+  "id": "dev-android-robot",
+  "name": "Android 로봇",
+  "group": 1,
+  "category": "dev",
+  "series": "android",
+  "seriesName": "Android",
+  "tags": [
+    "3d"
+  ],
+  "credit": "The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License.",
+  "license": "CC BY 3.0",
+  "source": "https://developer.android.com/distribute/marketing-tools/brand-guidelines",
+  "retrieved": "2026-09-29",
+  "pixel": false,
+  "size": 60,
+  "fps": 6,
+  "squash": true,
+  "poses": {
+    "normal": "normal.png"
+  }
+}

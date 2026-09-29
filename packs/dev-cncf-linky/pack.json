@@ -1,0 +1,22 @@
+{
+  "id": "dev-cncf-linky",
+  "name": "Linky (CNCF)",
+  "group": 1,
+  "category": "dev",
+  "series": "cncf",
+  "seriesName": "CNCF (Phippy와 친구들)",
+  "tags": [
+    "vector"
+  ],
+  "credit": "phippy.io — Linky © The Linux Foundation (CNCF), CC BY 4.0",
+  "license": "CC BY 4.0",
+  "source": "https://github.com/cncf/artwork/blob/main/other/phippy-and-friends/linky_full.png",
+  "retrieved": "2026-09-29",
+  "pixel": false,
+  "size": 80,
+  "fps": 6,
+  "squash": true,
+  "poses": {
+    "normal": "normal.png"
+  }
+}

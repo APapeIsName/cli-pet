@@ -1,0 +1,50 @@
+Kodee 캐릭터 팩 (cli-pet)
+=========================
+
+권리자
+  JetBrains s.r.o. (Kodee는 JetBrains가 만든 Kotlin 마스코트)
+
+라이선스
+  Creative Commons Attribution 4.0 International (CC BY 4.0)
+  요약: https://creativecommons.org/licenses/by/4.0/
+  전문: https://creativecommons.org/licenses/by/4.0/legalcode
+
+  근거 (https://kotlinfoundation.org/guidelines/ "IV. Mascot Kodee" 원문 인용):
+    "Kodee is Kotlin's mascot created by JetBrains. ... we want you to use it as
+     freely as possible. To achieve that, Kodee is licensed under Creative Commons
+     Attribution 4.0 International Public License."
+    "Kotlin mascot Kodee - we encourage you to use Kodee freely with no specific
+     restrictions when referring to Kotlin, it is licensed under CC BY 4.0."
+
+필수 표기 문구 (가이드라인 원문, 디지털 매체용)
+  Kodee by JetBrains s.r.o. is licensed under CC BY 4.0
+  (인쇄용: "Kodee by JetBrains s.r.o. is licensed under CC BY 4.0. To view a copy of
+   this license, visit http://creativecommons.org/licenses/by/4.0/")
+
+출처 (받은 날짜: 2026-09-29)
+  공식 에셋 묶음 "Kodee visual resources" (가이드라인 페이지의 링크):
+  https://resources.jetbrains.com/storage/products/kotlin/docs/kotlin_mascot_2.zip
+  묶음 안의 파일 → 이 팩의 파일
+  normal.png    <- kotlin_mascot_2/Digital/PNG/Kodee_Assets_Digital_Kodee-regular-156px-more.png
+  happy.png     <- kotlin_mascot_2/Digital/Emoji/png/kodee-electrified.png
+  surprised.png <- kotlin_mascot_2/Digital/Emoji/png/kodee-excited.png
+  sad.png       <- kotlin_mascot_2/Digital/Emoji/png/kodee-broken-hearted.png
+  think.png     <- kotlin_mascot_2/Digital/Emoji/png/kodee-lost.png
+  held.png      <- kotlin_mascot_2/Digital/Emoji/png/kodee-frightened.png
+  eat.png       <- kotlin_mascot_2/Digital/PNG/Kodee_Assets_Digital_Kodee-jumping copy.png
+  focus.png     <- kotlin_mascot_2/Digital/Emoji/kodee-loading.gif   (APNG로 변환)
+  dizzy.png     <- kotlin_mascot_2/Digital/Emoji/kodee-floating.gif  (APNG로 변환)
+  walk.png      <- kotlin_mascot_2/Digital/Emoji/kodee-walking.gif   (APNG로 변환)
+  talk.png      <- kotlin_mascot_2/Digital/Emoji/kodee-greetings.gif (APNG로 변환)
+
+바꾼 점
+  - PNG: 투명 여백을 잘라내고, 긴 변이 512px이 되도록 축소했다.
+  - GIF: 모든 프레임과 프레임별 시간(원본 그대로)을 유지한 채 움직이는 PNG(APNG)로
+    형식만 바꿨다. 모든 프레임에 같은 범위로 투명 여백을 잘랐다(크기는 원본 128px 그대로).
+  - 그림 내용은 바꾸지 않았다. 포즈 이름은 이 앱이 붙인 것이다.
+
+상표
+  Kotlin 로고와 "Kotlin" 워드마크는 이 팩에 포함하지 않았다.
+  Kotlin® 상표 사용 조건은 https://kotlinfoundation.org/guidelines/ 를 따른다.
+
+비공식 팩입니다. Kotlin 프로젝트, Kotlin Foundation, JetBrains와 관련이 없으며 보증받지 않았습니다.

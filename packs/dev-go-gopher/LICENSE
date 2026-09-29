@@ -1,0 +1,48 @@
+Go Gopher 캐릭터 팩 (cli-pet)
+================================
+
+권리자 / 원작자
+  Go Gopher 디자인: Renée French (http://reneefrench.blogspot.com/)
+  이미지 배포: The Go Authors (go.dev, github.com/golang/website)
+
+라이선스
+  Creative Commons Attribution 4.0 International (CC BY 4.0)
+  요약: https://creativecommons.org/licenses/by/4.0/
+  전문: https://creativecommons.org/licenses/by/4.0/legalcode
+
+  근거 (원문 인용):
+  - https://go.dev/blog/gopher :
+    "The gopher images are Creative Commons Attribution 4.0 licensed.
+     That means you can play with the images but you must give credit to their
+     creator (Renee French) wherever they are used."
+  - https://go.dev/brand :
+    "The Go Gopher mascot was created by Renee French and is licensed under the
+     Creative Commons 4.0 Attribution License."
+  - https://github.com/golang/website/blob/master/_content/doc/gopher/README :
+    "The Go gopher was designed by Renee French. ... The design is licensed under
+     the Creative Commons 4.0 Attributions license."
+  - https://go.dev/copyright : "Except as noted, the contents of this site are
+     licensed under the Creative Commons Attribution 4.0 License"
+
+필수 표기 문구
+  Go Gopher by Renée French, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+
+출처 파일 (받은 날짜: 2026-09-29, github.com/golang/website master 브랜치)
+  normal.png    <- https://github.com/golang/website/blob/master/_content/images/gophers/front.svg
+  happy.png     <- https://github.com/golang/website/blob/master/_content/images/gophers/happy.svg
+  focus.png     <- https://github.com/golang/website/blob/master/_content/images/gophers/headlamp-colorized.svg
+  surprised.png <- https://github.com/golang/website/blob/master/_content/images/gophers/blue.svg
+  think.png     <- https://github.com/golang/website/blob/master/_content/images/gophers/graduate-colorized.svg
+  walk.png      <- https://github.com/golang/website/blob/master/_content/images/gophers/skateboarding.svg
+  eat.png       <- https://github.com/golang/website/blob/master/_content/doc/gopher/gopherdrink.png
+
+바꾼 점
+  - SVG를 PNG로 변환(rsvg-convert)했다.
+  - 투명 여백을 잘라내고, 긴 변이 512px이 되도록 축소했다.
+  - 그림 내용(선, 색, 표정, 포즈)은 바꾸지 않았다. 포즈 이름은 이 앱이 붙인 것이다.
+
+상표
+  Go 로고와 "Go" 워드마크는 Google의 상표이며 이 팩에 포함하지 않았다.
+  (https://go.dev/brand 의 Brand and Trademark Usage Guidelines 참고)
+
+비공식 팩입니다. Go 프로젝트 및 Google과 관련이 없으며 보증받지 않았습니다.

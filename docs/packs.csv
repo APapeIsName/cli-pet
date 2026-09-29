@@ -1,0 +1,110 @@
+﻿판정,군,id,분류,시리즈,이름,종류,권리자,라이선스,수정,재배포,비상업만,같은조건공유,표기 문구,조건·주의,출처,문의처,문의 기대,팩 상태,확인일,문의일,답변,메모,포즈
+가능,0,original-sprout,original,sprout,새싹 (슬라임),자체 캐릭터,본인,자체 제작,O,O,X,X,,기본 펫. 코드로 그림,main.swift,,,완료,2026-09-29,,,,코드로 그림: 모든 포즈
+가능,0,animal-real-cat,animal,real,고양이 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,완료 (프로토타입),2026-09-29,,,,코드로 그림: 모든 포즈
+가능,0,animal-real-dog,animal,real,강아지 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,완료 (프로토타입),2026-09-29,,,,코드로 그림: 모든 포즈
+가능,0,animal-real-hamster,animal,real,햄스터 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,완료 (프로토타입),2026-09-29,,,,코드로 그림: 모든 포즈
+가능,0,animal-real-rabbit,animal,real,토끼 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,완료 (프로토타입),2026-09-29,,,,코드로 그림: 모든 포즈
+가능,0,animal-real-penguin,animal,real,펭귄 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,완료 (프로토타입),2026-09-29,,,,코드로 그림: 모든 포즈
+가능,0,animal-real-fox,animal,real,여우 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,완료 (프로토타입),2026-09-29,,,,코드로 그림: 모든 포즈
+가능,0,animal-real-duck,animal,real,오리 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,기획,2026-09-29,,,,
+가능,0,animal-real-otter,animal,real,수달 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,기획,2026-09-29,,,,
+가능,0,animal-real-hedgehog,animal,real,고슴도치 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,기획,2026-09-29,,,,
+가능,0,animal-real-turtle,animal,real,거북이 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,기획,2026-09-29,,,,
+가능,0,original-*,original,,자체 캐릭터 (추가 예정),자체 캐릭터,본인,자체 제작,O,O,X,X,,새 캐릭터를 만들 때마다 한 줄씩 추가,,,,기획,2026-09-29,,,,
+가능,1,dev-rust-ferris,dev,rust,Ferris (Rust),개발 마스코트,Karen Rustad Tölva,CC0,O,O,X,X,필요 없음,Rust 이름·로고는 상표,https://rustacean.net/,,,완료,2026-09-29,,,,"4개 / 없는 필수: sleep, surprised"
+가능,1,dev-go-gopher,dev,go,Go Gopher,개발 마스코트,Renée French,CC BY 4.0,O,O,X,X,Renee French,Go 로고는 별도 규정,https://go.dev/blog/gopher,,,완료,2026-09-29,,,,7개 / 없는 필수: sleep
+가능,1,dev-linux-tux,dev,linux,Tux (Linux),개발 마스코트,Larry Ewing / SVG: Garrett LeSage,자유 이용 허락 / SVG는 CC0,O,O,X,X,"Larry Ewing, The GIMP",Linux는 상표,https://github.com/garrett/Tux,,,완료,2026-09-29,,,,"1개 / 없는 필수: focus, happy, sleep, surprised"
+가능,1,dev-java-duke,dev,java,Duke (Java),개발 마스코트,Sun → Oracle,BSD-3-Clause,O,O,X,X,BSD 고지문,Java는 Oracle 상표,https://wiki.openjdk.org/display/duke/Main,,,완료,2026-09-29,,,,8개 / 필수 5 충족
+가능,1,dev-zig-ziggy / zero / carmen,dev,zig,Ziggy·Zero (Zig),개발 마스코트,Zig 프로젝트,CC BY 4.0,O,O,X,X,출처 표기,로고는 CC BY-SA라 제외,https://github.com/ziglang/logo,,,완료 (3팩),2026-09-29,,,Zero·Carmen 그림 안에 작은 Zig 로고가 있음 (LICENSE에 기록),"1~1개 / 없는 필수: focus, happy, sleep, surprised"
+가능,1,dev-cncf-phippy (+친구 11종),dev,cncf,Phippy와 친구들 (CNCF),개발 마스코트,CNCF,CC BY 4.0,O,O,X,X,phippy.io,쿠버네티스 로고 닮은 소품 주의,https://www.cncf.io/phippy/,,,완료 (12팩),2026-09-29,,,,"1~1개 / 없는 필수: focus, happy, sleep, surprised"
+가능,1,dev-kotlin-kodee,dev,kotlin,Kodee (Kotlin),개발 마스코트,JetBrains,CC BY 4.0,O,O,X,X,Kodee by JetBrains s.r.o. is licensed under CC BY 4.0,비하·부적절 사용 금지,https://kotlinfoundation.org/guidelines/,,,완료,2026-09-29,,,,11개 / 없는 필수: sleep
+가능,1,dev-android-robot,dev,android,Android 로봇,개발 마스코트,Google,CC BY 3.0,O,O,X,X,The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License.,'Android' 이름을 팩 브랜드로 쓰지 않기,https://developer.android.com/distribute/marketing-tools/brand-guidelines,,,완료,2026-09-29,,,공식 배포 그림이 머리뿐이라 포즈 1개,"1개 / 없는 필수: focus, happy, sleep, surprised"
+가능,1,dev-deno,dev,deno,Deno 공룡,개발 마스코트,Ryan Dahl 외,MIT (작품별),O,O,X,X,MIT 고지문,restricted 표시 작품 제외,https://deno.com/artwork,,,보류,2026-09-29,,,'The Original'은 사실상 Deno 로고의 원형이라 공식처럼 보일 위험. 보류,
+가능,1,animal-oneko-cat,animal,oneko,oneko 고양이,원조 데스크톱 펫,Kenji Gotoh 외,퍼블릭 도메인,O,O,X,X,필요 없음,sakura·tomoyo·bsd_daemon 그림 제외,https://sources.debian.org/src/oneko/,,,완료,2026-09-29,,,,8개 / 필수 5 충족
+가능,1,animal-fluent-cat,animal,fluent,고양이 (Fluent Emoji),이모지,Microsoft,MIT,O,O,X,X,MIT 고지문,Microsoft 브랜드 사용 금지,https://github.com/microsoft/fluentui-emoji,,,완료,2026-09-29,,,,6개 / 필수 5 충족
+가능,1,animal-fluent-dog / fox / hamster / rabbit / penguin / panda / chick,animal,fluent,동물들 (Fluent Emoji Animated),이모지,Microsoft,MIT,O,O,X,X,MIT 고지문,강아지·여우·햄스터·토끼·펭귄·판다·병아리,https://github.com/microsoft/fluentui-emoji-animated,,,완료 (7팩),2026-09-29,,,,"1~2개 / 없는 필수: focus, happy, sleep, surprised"
+가능,1,animal-noto-*,animal,noto,Noto Animated Emoji,이모지,Google,CC BY 4.0,O,O,X,X,"Animated Noto Emoji © Google, CC BY 4.0, modified",,https://googlefonts.github.io/noto-emoji-animation/,,,후보,2026-09-29,,,,
+가능,1,animal-twemoji-*,animal,twemoji,Twemoji,이모지,jdecked 포크 (원래 Twitter),CC BY 4.0,O,O,X,X,README나 정보 화면에 언급,,https://github.com/jdecked/twemoji,,,후보,2026-09-29,,,,
+가능,1,animal-blobmoji-*,animal,blobmoji,Blobmoji,이모지,Google 외,Apache-2.0,O,O,X,X,Apache LICENSE·NOTICE,저장소 보관(archived)됨,https://github.com/C1710/blobmoji,,,후보,2026-09-29,,,,
+가능,1,animal-kenney-*,animal,kenney,Kenney 동물 팩,게임 에셋,Kenney,CC0,O,O,X,X,필요 없음 (권장),정지 그림이라 모션만,https://kenney.nl/assets/animal-pack-remastered,,,후보,2026-09-29,,,,
+가능,1,animal-luizmelo-cat / dog,animal,luizmelo,Pet Cats/Dogs (LuizMelo),픽셀 에셋,LuizMelo,CC0,O,O,X,X,필요 없음,업로더 선언 라이선스. URL·날짜 기록,https://luizmelo.itch.io/pet-cat-pack,,,후보,2026-09-29,,,,
+가능,1,animal-pzuh-cat / dog,animal,pzuh,Cat & Dog (pzUH),픽셀 에셋,pzUH,CC0,O,O,X,X,필요 없음,업로더 선언 라이선스. URL·날짜 기록,https://opengameart.org/content/cat-dog-free-sprites,,,후보,2026-09-29,,,,
+가능,1,animal-lpc-cat / dog,animal,lpc,[LPC] Cats and Dogs,픽셀 에셋,bluecarrot16,CC BY 3.0 (선택),O,O,X,X,정해진 표기 문구,위에서 본 RPG 스타일,https://opengameart.org/content/lpc-cats-and-dogs,,,후보,2026-09-29,,,,
+가능,1,anime-peppercarrot-pepper,anime,peppercarrot,Pepper&Carrot,웹툰,David Revoy,CC BY 4.0,O,O,X,X,Based on the webcomic Pepper&Carrot by David Revoy licensed under Creative Commons Attribution 4.0,NFT 금지,https://www.peppercarrot.com/,,,후보,2026-09-29,,,,
+가능,1,anime-bigbuckbunny,anime,bigbuckbunny,Big Buck Bunny,애니메이션,Blender Foundation,CC BY 3.0,O,O,X,X,"(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org",로고 제외,https://peach.blender.org/about/,,,후보,2026-09-29,,,,
+조건적 가능,2,dev-kde-konqi,dev,kde,Konqi & Katie (KDE),개발 마스코트,Tyson Tan,CC BY-SA / GFDL / LGPL,O,O,X,O,Tyson Tan (권장),팩 그림도 같은 라이선스로 공개. 앱 코드에는 영향 없음,https://community.kde.org/Promo/Material/Mascots,,,후보,2026-09-29,,,인지도 낮음. 우선순위 낮음,
+조건적 가능,2,dev-krita-kiki,dev,krita,Kiki (Krita),개발 마스코트,Tyson Tan,GPL / CC BY-SA,O,O,X,O,Tyson Tan,팩 그림도 같은 라이선스로 공개. 앱 코드에는 영향 없음,https://krita.org/en/about/mascot/,,,후보,2026-09-29,,,인지도 낮음. 우선순위 낮음,
+조건적 가능,2,dev-gimp-wilber,dev,gimp,Wilber (GIMP),개발 마스코트,Aryeom Han / GIMP,CC BY-SA 4.0,O,O,X,O,Aryeom Han / GIMP team,팩 그림도 같은 라이선스로 공개. 앱 코드에는 영향 없음,https://www.gimp.org/about/linking.html,,,후보,2026-09-29,,,인지도 낮음. 우선순위 낮음,
+조건적 가능,2,dev-gentoo-larry,dev,gentoo,Larry the Cow (Gentoo),개발 마스코트,Ethan Dunham 외,CC BY-SA 2.5,O,O,X,O,"Ethan Dunham, Matteo Pescarin",팩 그림도 같은 라이선스로 공개. 앱 코드에는 영향 없음,https://wiki.gentoo.org/wiki/Project:Artwork/Artwork,,,후보,2026-09-29,,,인지도 낮음. 우선순위 낮음,
+조건적 가능,2,anime-wikipedia-wikipetan,anime,wikipedia,Wikipe-tan,오픈 프로젝트 캐릭터,Kasuga,CC BY-SA 3.0 / GFDL,O,O,X,O,Kasuga,팩 그림도 같은 라이선스로 공개. 앱 코드에는 영향 없음,https://commons.wikimedia.org/wiki/File:Wikipe-tan_full_length.svg,,,후보,2026-09-29,,,인지도 낮음. 우선순위 낮음,
+조건적 가능,2,dev-pleroma-pleromatan,dev,pleroma,Pleroma-tan,오픈 프로젝트 캐릭터,David Revoy,CC BY-SA 4.0,O,O,X,O,"David Revoy, pleroma.social",팩 그림도 같은 라이선스로 공개. 앱 코드에는 영향 없음,https://www.davidrevoy.com/article926/pleroma-tan,,,후보,2026-09-29,,,인지도 낮음. 우선순위 낮음,
+조건적 가능,2,animal-openmoji-*,animal,openmoji,OpenMoji,이모지,HfG Schwäbisch Gmünd,CC BY-SA 4.0,O,O,X,O,All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0,팩 그림도 같은 라이선스로 공개. 앱 코드에는 영향 없음,https://github.com/hfg-gmuend/openmoji,,,후보,2026-09-29,,,인지도 낮음. 우선순위 낮음,
+문의,,game-lostark-mokoko,game,lostark,모코코 (로스트아크),게임 캐릭터,Smilegate,CC BY-NC-SA 4.0,O,X,O,O,Smilegate,"팬킷 목록 페이지엔 CC BY-NC-SA라고 적혀 있지만, 모코코 팬킷 9개가 각각 재배포를 금지한다. 번들 불가",https://lostark.game.onstove.com/Fankit,Smilegate (로스트아크 공식 문의),보통,문의 전,2026-09-29,,,,
+조건적 가능,3,virtual-crypton-miku,virtual,crypton,하츠네 미쿠 등 크립톤 캐릭터,보컬로이드,Crypton Future Media,피아프로 캐릭터 라이선스(PCL),O,O,O,X,この作品はピアプロ・キャラクター・ライセンスに基づいてクリプトン・フューチャー・メディア株式会社のキャラクター「初音ミク」を描いたものです。,공식 이미지 재배포 금지 → 직접 그려야 함. 광고 금지,https://piapro.jp/license/pcl,,,그림 필요,2026-09-29,,,,
+조건적 가능,3,virtual-zunko-zundamon,virtual,zunko,즌다몬·도호쿠 즌코·시코쿠 메탄,보이스 캐릭터,SSS 합동회사,즌즌PJ 가이드라인,O,O,O,X,필요 없음,정치·종교·성인·폭력·가상화폐 금지. 재허락 금지,https://zunko.jp/guideline.html,,,완료,2026-09-29,,,재배포 허용은 '비상업 자유 이용·앱 사용 OK' 문구에 근거한 해석. 파일 재배포를 글자 그대로 허락한 문장은 아님,10개 / 필수 5 충족
+조건적 가능,3,virtual-kasukabe-tsumugi,virtual,kasukabe,카스카베 츠무기,보이스 캐릭터,KASUKABE project,2차 창작 안내,O,O,O,X,,개인 규모·비영리. 공식 입식 그림 재배포 금지 → 직접 그려야 함,https://tsumugi-official.studio.site/rule,,,그림 필요,2026-09-29,,,,
+조건적 가능,3,dev-unity-unitychan,dev,unity,Unity-chan,게임 엔진 캐릭터,Unity Technologies Japan,UCL 3.0,O,O,O,X,© Unity Technologies Japan/UCL,"UCL 파일 묶음(약 6.5MB) 동봉 필수, AI 학습·입력 금지, 공식처럼 보이면 안 됨. UCL은 상업도 허용하지만 비상업 폴더에 둠",https://unity3d.jp/unity-chan_contents/license.php,,,완료,2026-09-29,,,,7개 / 필수 5 충족
+조건적 가능,3,game-touhou-*,game,touhou,동방 프로젝트,게임 캐릭터,ZUN / 上海アリス幻樂団,2차 창작 가이드라인,O,O,O,X,동방 Project 2차 창작임을 명시,무료 앱만. 배포처에 GitHub이 명시돼 있지 않음. 게임 에셋 금지 → 직접 그려야 함,https://touhou-project.news/guideline/,,,그림 필요,2026-09-29,,,배포처 조건 확인 필요,
+조건적 가능,3,virtual-hololive-*,virtual,hololive,홀로라이브,VTuber,COVER,2차 창작 가이드라인,O,O,O,X,,실존 연기자 캐릭터. 펫 대사가 명예 문제로 번질 수 있음,https://hololivepro.com/terms/,,,보류,2026-09-29,,,비추천,
+문의,,dev-plan9-glenda,dev,plan9,Glenda (Plan 9),개발 마스코트,Renée French,허락 없음,X,X,,,,비공식 허락 문구만 있음 (수정 허용 불명확),,Plan 9 Foundation (p9f.org) 또는 Renée French,높음,문의 전,2026-09-29,,,,
+문의,,dev-misskey-ai,dev,misskey,藍 (Misskey),오픈 프로젝트 캐릭터,syuilo,허락 없음,X,X,,,,"팬아트 환영, 재배포 라이선스 없음",,syuilo (Misskey 개발자),높음,문의 전,2026-09-29,,,,
+문의,,dev-gleam-lucy,dev,gleam,Lucy (Gleam),개발 마스코트,Louis Pilfold,허락 없음,X,X,,,,라이선스 명시 없음,,Louis Pilfold (Gleam),높음,문의 전,2026-09-29,,,,
+문의,,dev-bsd-beastie,dev,bsd,BSD Daemon,개발 마스코트,Marshall Kirk McKusick,허락 없음,X,X,,,,"개인 사용만, 대량 배포는 사전 허락",,mckusick@mckusick.com,보통,문의 전,2026-09-29,,,,
+문의,,dev-gnu,dev,gnu,GNU head,개발 마스코트,FSF,허락 없음,X,X,,,,GNU 관련 맥락에서만,,licensing@fsf.org,보통,문의 전,2026-09-29,,,,
+문의,,dev-nodejs-rocketturtle,dev,nodejs,Rocket Turtle (Node.js),개발 마스코트,OpenJS Foundation,허락 없음,X,X,,,,상표 정책 적용 범위 불명확,,OpenJS Foundation 상표 문의,보통,문의 전,2026-09-29,,,,
+문의,,dev-mastodon,dev,mastodon,Mastodon 마스코트,개발 마스코트,Mastodon gGmbH,허락 없음,X,X,,,,상표 정책상 수정 금지,,trademark@joinmastodon.org,보통,문의 전,2026-09-29,,,,
+문의,,dev-godot-robot,dev,godot,Godot 로봇,개발 마스코트,Godot Foundation,허락 없음,X,X,,,,"그림은 CC BY, 상표 규정이 제품 사용 제한",,Godot 공식 문의,보통,문의 전,2026-09-29,,,,
+문의,,dev-bun,dev,bun,Bun,개발 마스코트,Oven,허락 없음,X,X,,,,'묻지 않고 늘이거나 모자 씌우지 말 것',,bun.sh 프레스 키트 연락처,보통,문의 전,2026-09-29,,,,
+문의,,dev-github-octocat,dev,github,Octocat / Mona,개발 마스코트,GitHub,허락 없음,X,X,,,,모든 공개 사용은 브랜드팀 승인 필요,,GitHub Brand & Marketing Design 팀 (brand.github.com),낮음,문의 전,2026-09-29,,,,
+문의,,dev-docker-moby,dev,docker,Moby Dock,개발 마스코트,Docker,허락 없음,X,X,,,,수정·재현 금지,,Docker 상표 문의,낮음,문의 전,2026-09-29,,,,
+문의,,dev-gitlab-tanuki,dev,gitlab,Tanuki,개발 마스코트,GitLab,허락 없음,X,X,,,,다시 그리기·수정 금지,,GitLab 브랜드 문의,낮음,문의 전,2026-09-29,,,,
+문의,,dev-php-elephpant,dev,php,elePHPant,개발 마스코트,Vincent Pontier,허락 없음,X,X,,,,라이선스 없음,,Vincent Pontier,보통,문의 전,2026-09-29,,,,
+문의,,dev-postgresql-slonik,dev,postgresql,Slonik (PostgreSQL),개발 마스코트,PostgreSQL 커뮤니티,허락 없음,X,X,,,,사전 승인 없이 수정 금지,,PostgreSQL 상표 정책 페이지의 연락처,보통,문의 전,2026-09-29,,,,
+문의,,dev-firefox-fox,dev,firefox,Firefox 여우,개발 마스코트,Mozilla,허락 없음,X,X,,,,사전 서면 허락 필요,,Mozilla 상표 문의,낮음,문의 전,2026-09-29,,,,
+문의,,dev-openbsd-puffy,dev,openbsd,Puffy (OpenBSD),개발 마스코트,OpenBSD,허락 없음,X,X,,,,"저작권 있음, 2차 창작 허락 필요",,OpenBSD 프로젝트,보통,문의 전,2026-09-29,,,,
+문의,,dev-darwin-hexley,dev,darwin,Hexley (Darwin),개발 마스코트,Jon Hooper,허락 없음,X,X,,,,"개인 사용만, 원본 디자인 선호",,hexley.com,보통,문의 전,2026-09-29,,,,
+문의,,anime-kakaofriends-*,anime,kakaofriends,"카카오프렌즈 (라이언, 춘식이)",한국 캐릭터,카카오,허락 없음,X,X,,,,SNS 짤만 묵인. 앱은 해당 없음,,카카오 IP 사업 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-linefriends-*,anime,linefriends,라인프렌즈 / BT21,한국 캐릭터,IPX,허락 없음,X,X,,,,공개 허락 없음,,IPX 라이선스 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-pororo,anime,pororo,뽀로로,한국 캐릭터,아이코닉스,허락 없음,X,X,,,,공개 허락 없음,,아이코닉스 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-ebs-pengsoo,anime,ebs,펭수,한국 캐릭터,EBS,허락 없음,X,X,,,,공개 허락 없음,,EBS 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-larva,anime,larva,라바,한국 캐릭터,투바앤,허락 없음,X,X,,,,공개 허락 없음,,투바앤 문의,낮음,문의 전,2026-09-29,,,,
+문의,,game-nexon-*,game,nexon,넥슨 게임 캐릭터,한국 게임,넥슨,허락 없음,X,X,,,,비영리 앱은 개별 문의하라고 명시,,넥슨 고객센터,보통,문의 전,2026-09-29,,,,
+문의,,public-seoul-haechi,public,seoul,해치 (서울),한국 공공 캐릭터,서울특별시,허락 없음,X,X,,,,공공누리 4유형(변경 금지). 사용 신청 절차 있음,,서울시 상징물 사용 신청,낮음,문의 전,2026-09-29,,,,
+문의,,public-busan-boogi,public,busan,부기 (부산),한국 공공 캐릭터,부산광역시,허락 없음,X,X,,,,공공누리 4유형. 형태 변경 절대 불가,,부산시 캐릭터 담당,낮음,문의 전,2026-09-29,,,,
+문의,,anime-chiikawa,anime,chiikawa,치이카와,일본 캐릭터,ナガノ / ちいかわ委員会,허락 없음,X,X,,,,팬 창작 가이드라인 없음,,공식 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-sanx-*,anime,sanx,스밋코구라시·리락쿠마,일본 캐릭터,San-X,허락 없음,X,X,,,,SNS 팬아트만 허용. 앱은 대상 외,,San-X 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-sanrio-*,anime,sanrio,"산리오 (헬로키티, 쿠로미, 시나모롤 등)",일본 캐릭터,Sanrio,허락 없음,X,X,,,,"개인 사용 외 금지, 수정 금지",,Sanrio 라이선스 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-mofusand,anime,mofusand,mofusand,일본 캐릭터,ぢゅの / Spiral Cute,허락 없음,X,X,,,,가이드라인 없음,,공식 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-ghibli-totoro,anime,ghibli,토토로 (지브리),일본 캐릭터,Studio Ghibli,허락 없음,X,X,,,,스틸 이미지 원본 그대로만. 소프트웨어 복제 금지,,스튜디오 지브리 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-doraemon / anime-hamtaro,anime,shogakukan,도라에몽·햄토리,일본 캐릭터,쇼가쿠칸 / 후지코 프로,허락 없음,X,X,,,,아이콘·소프트웨어 제작 명시적 금지,,쇼가쿠칸 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-shinchan,anime,shinchan,짱구,일본 캐릭터,후타바샤 / 신에이,허락 없음,X,X,,,,허락 신청서 방식,,후타바샤 허락 신청,낮음,문의 전,2026-09-29,,,,
+문의,,game-tamagotchi,game,tamagotchi,다마고치,일본 캐릭터,Bandai,허락 없음,X,X,,,,사전 허락 없이 금지,,Bandai 문의,낮음,문의 전,2026-09-29,,,,
+문의,,game-minecraft-*,game,minecraft,마인크래프트,게임,Mojang,허락 없음,X,X,,,,무료 공유도 상업으로 봄. 서면 허락 필요,,Mojang 문의,낮음,문의 전,2026-09-29,,,,
+문의,,game-terraria-*,game,terraria,테라리아,게임,Re-Logic,허락 없음,X,X,,,,사전에 명시적 허락 필요,,Re-Logic 문의,낮음,문의 전,2026-09-29,,,,
+문의,,game-amongus-*,game,amongus,어몽어스,게임,Innersloth,허락 없음,X,X,,,,대량 배포·다른 IP와 혼합 금지,,Innersloth 문의,낮음,문의 전,2026-09-29,,,,
+문의,,game-hollowknight-*,game,hollowknight,할로우 나이트,게임,Team Cherry,허락 없음,X,X,,,,"직접 그린 굿즈는 허용, 소프트웨어는 언급 없음",,Team Cherry 문의,보통,문의 전,2026-09-29,,,,
+문의,,game-undertale-*,game,undertale,언더테일,게임,Toby Fox,허락 없음,X,X,,,,굿즈 정책만 있음,,Toby Fox 측 문의,낮음,문의 전,2026-09-29,,,,
+문의,,game-stardew-*,game,stardew,스타듀밸리,게임,ConcernedApe,허락 없음,X,X,,,,정책 없음,,ConcernedApe 문의,낮음,문의 전,2026-09-29,,,,
+문의,,game-hoyoverse-*,game,hoyoverse,호요버스 캐릭터,게임,HoYoverse,허락 없음,X,X,,,,비상업 개인 사용 묵인. 라이선스 아님이라고 명시,,HoYoverse 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-pusheen,anime,pusheen,퍼핀,미국 캐릭터,Pusheen Corp.,허락 없음,X,X,,,,허락 없음,,Pusheen 라이선스 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-peanuts-snoopy,anime,peanuts,스누피,미국 캐릭터,Peanuts Worldwide,허락 없음,X,X,,,,허락 없음,,info@peanuts.com,낮음,문의 전,2026-09-29,,,,
+문의,,anime-miffy,anime,miffy,미피,유럽 캐릭터,Mercis,허락 없음,X,X,,,,서면 허락 필요,,Mercis 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-moomin,anime,moomin,무민,유럽 캐릭터,Moomin Characters,허락 없음,X,X,,,,허락 없음,,Moomin Characters 문의,낮음,문의 전,2026-09-29,,,,
+문의,,anime-molang,anime,molang,몰랑,유럽 캐릭터,Millimages,허락 없음,X,X,,,,서면 허락 필요,,Millimages 문의,낮음,문의 전,2026-09-29,,,,
+문의,,meme-nyancat,meme,nyancat,냥캣,밈,Chris Torres,허락 없음,X,X,,,,허락 없음,,Chris Torres,낮음,문의 전,2026-09-29,,,,
+문의,,meme-doge,meme,doge,도지 (카보스),밈,Own The Doge (독점 라이선스),허락 없음,X,X,,,,허락 없음,,Own The Doge 문의 양식,낮음,문의 전,2026-09-29,,,,
+문의,,brand-duolingo-duo,brand,duolingo,듀오 (듀오링고),브랜드 마스코트,Duolingo,허락 없음,X,X,,,,상표. 정책 없음,,Duolingo 브랜드 문의,낮음,문의 전,2026-09-29,,,,
+문의,,brand-microsoft-clippy,brand,microsoft,클리피,브랜드 마스코트,Microsoft,허락 없음,X,X,,,,명시적 라이선스 필요,,Microsoft 상표 문의,낮음,문의 전,2026-09-29,,,,
+불가,,game-pokemon-*,game,pokemon,포켓몬,게임,The Pokémon Company,허락 없음,X,X,,,,팬아트도 개인·비상업 가정 내 사용까지만이라고 명시,https://www.pokemon.com/us/legal/information,,,제외,2026-09-29,,,,
+불가,,game-nintendo-*,game,nintendo,"닌텐도 (커비, 동물의 숲 등)",게임,Nintendo,허락 없음,X,X,,,,개인에게 개별 허락을 하지 않는다고 명시,https://www.nintendo.com/jp/about_hp.html,,,제외,2026-09-29,,,,
+불가,,game-riot-*,game,riot,라이엇 게임즈,게임,Riot Games,허락 없음,X,X,,,,IP를 쓴 게임·앱 금지 명시,https://www.riotgames.com/en/legal,,,제외,2026-09-29,,,,
+불가,,game-blizzard-*,game,blizzard,블리자드,게임,Blizzard,허락 없음,X,X,,,,변형 불가 명시,https://www.blizzard.com/en-us/legal/,,,제외,2026-09-29,,,,
+불가,,game-slimerancher-*,game,slimerancher,슬라임 랜처,게임,Monomi Park,허락 없음,X,X,,,,IP를 쓴 소프트웨어 금지 명시,https://www.slimerancher.com/fan-content-policy/,,,제외,2026-09-29,,,,
+불가,,public-kumamoto-kumamon,public,kumamoto,쿠마몬,일본 공공 캐릭터,구마모토현,허락 없음,X,X,,,,앱 신규 신청을 받지 않음,https://kumamon-land.jp/riyokyodaku/,,,제외,2026-09-29,,,,
+불가,,public-gunma-gunmachan,public,gunma,군마짱,일본 공공 캐릭터,군마현,허락 없음,X,X,,,,해외 개인·법인에게는 원칙적으로 허락 안 함,,,,제외,2026-09-29,,,,
+불가,,virtual-kizunaai,virtual,kizunaai,키즈나 아이,VTuber,Kizuna AI,허락 없음,X,X,,,,사적 사용 범위만. 모델 포함 소프트웨어 배포 금지,https://kizunaai.com/guideline/,,,제외,2026-09-29,,,,
+불가,,etc-apple-emoji,etc,apple,Apple 이모지,이모지,Apple,허락 없음,X,X,,,,OS 약관상 수정·재배포 불가,https://www.apple.com/legal/sla/,,,제외,2026-09-29,,,,
+불가,,etc-samsung-emoji,etc,samsung,Samsung 이모지,이모지,Samsung,허락 없음,X,X,,,,공개 라이선스 없음,https://www.samsung.com/us/common/legal/,,,제외,2026-09-29,,,,
+불가,,animal-esheep-sheep,animal,esheep,eSheep 양,원조 데스크톱 펫,Tatsutoshi Nomura / 후지TV,허락 없음,X,X,,,,그림 라이선스 없음 (코드만 GPL),https://github.com/Adrianotiger/desktopPet,,,제외,2026-09-29,,,,
+불가,,etc-shimeji,etc,shimeji,Shimeji 원본,원조 데스크톱 펫,Group-Finity,허락 없음,X,X,,,,All rights reserved. 권리자 연락 불가,,,,제외,2026-09-29,,,,
+불가,,brand-bonzi-bonzibuddy,brand,bonzi,BonziBuddy,원조 데스크톱 펫,Bonzi Software (폐업),허락 없음,X,X,,,,권리자 연락 불가,,,,제외,2026-09-29,,,,

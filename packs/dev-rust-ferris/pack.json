@@ -1,0 +1,24 @@
+{
+  "id": "dev-rust-ferris",
+  "name": "Ferris",
+  "group": 1,
+  "category": "dev",
+  "series": "rust",
+  "seriesName": "Rust",
+  "tags": [
+    "vector",
+    "flat"
+  ],
+  "credit": "Ferris the Rustacean by Karen Rustad Tölva (CC0)",
+  "license": "CC0 1.0",
+  "source": "https://rustacean.net/",
+  "retrieved": "2026-09-29",
+  "pixel": false,
+  "size": 64,
+  "poses": {
+    "normal": "normal.png",
+    "happy": "happy.png",
+    "focus": "focus.png",
+    "think": "focus.png"
+  }
+}

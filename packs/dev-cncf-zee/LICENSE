@@ -1,0 +1,37 @@
+Zee 캐릭터 팩 (cli-pet)
+========================================
+
+권리자
+  The Linux Foundation (Cloud Native Computing Foundation을 대신하여 보유)
+  캐릭터: Zee (etcd) — "Phippy and Friends"
+
+라이선스
+  Creative Commons Attribution (CC BY). 이 팩은 CC BY 4.0 International로 표기한다.
+  요약: https://creativecommons.org/licenses/by/4.0/
+  전문: https://creativecommons.org/licenses/by/4.0/legalcode
+
+  근거 (https://www.cncf.io/phippy/ 원문 인용):
+    "The characters Phippy, Captain Kube, Zee, Linky, Hazel, Cappy, Izzy, Keddy, Owlina,
+     Obee, Tai, and Tiago are owned by The Linux Foundation, on behalf of the Cloud Native
+     Computing Foundation, and licensed under the Creative Commons Attribution License
+     (CC-BY), which means that you can remix, transform, and build upon the material for
+     any purpose, even commercially. If you use the characters, please include the text
+     "phippy.io" to provide attribution (and online, please include a link to
+     https://phippy.io)."
+  주의: cncf.io 문구는 "CC-BY"라고만 하고 버전을 적지 않았다. 링크된 라이선스가 CC BY
+  4.0이라는 전제로 표기했다. 또 cncf/artwork 저장소의 LICENSE.md는 저장소 전체 그림에
+  Linux Foundation 상표 사용 지침(https://www.linuxfoundation.org/trademark-usage/)을
+  적용한다고 말한다. 이 팩은 캐릭터 그림만 쓰고 CNCF/프로젝트 로고는 쓰지 않는다.
+
+필수 표기 문구
+  phippy.io  (온라인에서는 https://phippy.io 로 링크)
+
+출처 파일 (받은 날짜: 2026-09-29, github.com/cncf/artwork main 브랜치)
+  normal.png <- https://github.com/cncf/artwork/blob/main/other/phippy-and-friends/zee_full.png
+  (raw: https://raw.githubusercontent.com/cncf/artwork/main/other/phippy-and-friends/zee_full.png)
+
+바꾼 점
+  - 투명 여백을 잘라내고, 긴 변이 512px이 되도록 축소했다.
+  - 그림 내용은 바꾸지 않았다. 공식 그림이 한 장뿐이라 normal 포즈만 있다.
+
+비공식 팩입니다. CNCF, The Linux Foundation, Phippy and Friends 프로젝트와 관련이 없으며 보증받지 않았습니다.

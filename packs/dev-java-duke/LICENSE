@@ -1,0 +1,68 @@
+Duke 캐릭터 팩 (cli-pet)
+========================
+
+권리자
+  Duke (Java 마스코트): Sun Microsystems, Inc. 가 만들고 2006-11-13 New BSD 라이선스로 공개.
+  현재 Oracle 및 그 계열사가 OpenJDK Duke Project(https://openjdk.org/projects/duke/)로 배포.
+
+라이선스
+  New BSD License (BSD 3-Clause)
+  근거 (원문 인용, https://wiki.openjdk.org/display/duke → https://wiki.openjdk.org/spaces/duke/pages/51282050/Main):
+    "Duke is the Java mascot, which was open sourced by Sun on November 13, 2006
+     under the New BSD license. ... All we ask is that you treat Duke with the same
+     respect that Sun (and now Oracle) has. Note that you do not need to include
+     the BSD license text to include Duke images on your website."
+  github.com/openjdk/duke 저장소에는 별도 LICENSE 파일이 없다. 아래 전문은
+  표준 New BSD(3-Clause) 문구에 권리자 이름을 넣은 것이다 (원래 java.net 배포본의
+  문구를 직접 확인하지는 못했다).
+
+필수 표기 문구
+  Duke, the Java mascot — Copyright (c) 2006 Sun Microsystems, Inc. (now Oracle), New BSD License
+
+라이선스 전문 (BSD 3-Clause)
+  Copyright (c) 2006, Sun Microsystems, Inc.
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+  3. Neither the name of the copyright holder nor the names of its contributors
+     may be used to endorse or promote products derived from this software
+     without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+출처 파일 (받은 날짜: 2026-09-29, github.com/openjdk/duke master 브랜치 vector/ 폴더)
+  normal.png    <- https://github.com/openjdk/duke/blob/master/vector/Agent.svg
+  happy.png     <- https://github.com/openjdk/duke/blob/master/vector/ThumbsUp.svg
+  focus.png     <- https://github.com/openjdk/duke/blob/master/vector/Paper.svg
+  surprised.png <- https://github.com/openjdk/duke/blob/master/vector/NyaNya.svg
+  sleep.png     <- https://github.com/openjdk/duke/blob/master/vector/Snooze.svg
+  think.png     <- https://github.com/openjdk/duke/blob/master/vector/Thinking.svg
+  dizzy.png     <- https://github.com/openjdk/duke/blob/master/vector/Tumbling.svg
+  talk.png      <- https://github.com/openjdk/duke/blob/master/vector/Wave.svg
+
+바꾼 점
+  - SVG를 PNG로 변환(rsvg-convert)했다.
+  - 투명 여백을 잘라내고, 긴 변이 512px이 되도록 축소했다.
+  - 그림 내용은 바꾸지 않았다. 포즈 이름은 이 앱이 붙인 것이다.
+
+상표
+  Java 로고와 "Java" 워드마크는 Oracle의 상표이며 이 팩에 포함하지 않았다.
+
+비공식 팩입니다. Java/OpenJDK 프로젝트 및 Oracle과 관련이 없으며 보증받지 않았습니다.

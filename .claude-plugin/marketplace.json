@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "cli-pet",
+  "description": "터미널 위에 떠 있는 작은 데스크톱 펫 (macOS)",
+  "owner": {
+    "name": "APapeIsName"
+  },
+  "plugins": [
+    {
+      "name": "cli-pet",
+      "description": "Claude Code가 하는 일을 데스크톱 펫이 말풍선으로 보여줍니다. CLIPet 앱(macOS)이 먼저 설치돼 있어야 합니다.",
+      "source": "./plugin",
+      "category": "productivity"
+    }
+  ]
+}

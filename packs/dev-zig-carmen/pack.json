@@ -1,0 +1,22 @@
+{
+  "id": "dev-zig-carmen",
+  "name": "Carmen (Zig)",
+  "group": 1,
+  "category": "dev",
+  "series": "zig",
+  "seriesName": "Zig",
+  "tags": [
+    "vector"
+  ],
+  "credit": "Carmen the Allocgator — Zig project (github.com/ziglang/logo), CC BY 4.0",
+  "license": "CC BY 4.0",
+  "source": "https://github.com/ziglang/logo/blob/master/carmen.svg",
+  "retrieved": "2026-09-29",
+  "pixel": false,
+  "size": 80,
+  "fps": 6,
+  "squash": true,
+  "poses": {
+    "normal": "normal.png"
+  }
+}

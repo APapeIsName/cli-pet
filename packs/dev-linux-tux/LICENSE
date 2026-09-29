@@ -1,0 +1,52 @@
+Tux 팩 — 라이선스 및 출처
+=========================
+
+권리자 / 작자
+  - 원래 Tux 그림: Larry Ewing (lewing@isc.tamu.edu), The GIMP로 제작 (1996)
+  - SVG 벡터 재작화: Garrett LeSage (Inkscape)
+  - 다듬기·정리: IFo Hancroft
+
+라이선스
+  CC0 1.0 Universal (Public Domain Dedication)
+  https://creativecommons.org/publicdomain/zero/1.0/
+  전문: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+  github.com/garrett/Tux README.md 원문 (commit ecd40de64250ea2b24c849e901c3297ad01e54f6):
+    ## License
+
+    Public domain
+      http://creativecommons.org/publicdomain/zero/1.0/
+
+    ...but, if anyone asks:
+
+    Tux was originally made by Larry Ewing in the Gimp,
+    re-illustrated in vector by Garrett LeSage, using Inkscape
+    and refined and cleaned up by IFo Hancroft.
+
+  tux.svg 안의 메타데이터에도 cc:license = http://creativecommons.org/publicdomain/zero/1.0/ 로 적혀 있다.
+
+  참고 — 원래 Larry Ewing 그림의 조건 (원 페이지는 현재 404, 보관본에서 확인):
+    "Permission to use and/or modify this image is granted provided you
+     acknowledge me lewing@isc.tamu.edu and The GIMP if someone asks."
+    https://web.archive.org/web/20250103090721/https://isc.tamu.edu/~lewing/linux/
+  이 조건도 만족하도록 표기 문구에 Larry Ewing과 The GIMP를 함께 적는다.
+
+표기 문구 (앱 메뉴에 표시)
+  Tux by Larry Ewing (lewing@isc.tamu.edu) and The GIMP; SVG by Garrett LeSage, refined by IFo Hancroft
+
+출처 URL
+  https://github.com/garrett/Tux
+  https://raw.githubusercontent.com/garrett/Tux/ecd40de64250ea2b24c849e901c3297ad01e54f6/tux.svg
+  https://github.com/garrett/Tux/blob/ecd40de64250ea2b24c849e901c3297ad01e54f6/README.md
+  원본 tux.svg SHA-256: a31038faddfc457ada7948ab18c5cd8bad68863f5520144d5cbed5acb84f7b33
+
+받은 날짜
+  2026-09-29
+
+바꾼 점
+  - tux.svg를 rsvg-convert로 높이 420px PNG(투명 배경)로 렌더링(형식 변환).
+  - 둘레의 투명 여백만 잘라냄 → 344x411 px. 새로 그린 부분 없음.
+  - 저장소에 표정·포즈가 다른 공식 그림이 없어서 normal 한 장만 쓴다
+    (tux-bw 등은 색만 다른 판이라 쓰지 않음).
+
+비공식 팩입니다. Linux 재단, Larry Ewing, Garrett LeSage, IFo Hancroft와 관련이 없으며 보증받지 않았습니다.

@@ -1,0 +1,84 @@
+oneko 고양이 팩 — 라이선스 및 출처
+==================================
+
+권리자 / 작자
+  - xneko 원작: Masayuki Koba
+  - oneko 개작: Tatsuya Kato (kato@ntts.co.jp), 1990
+  - Debian 패키지 관리자: Joey Hess, Steve Dunham, Adrian Bunk, Marc Brockschmidt, Ricardo Mones 외
+
+라이선스
+  퍼블릭 도메인 (Public domain)
+
+  Debian debian/copyright (1.2.sakura.6-16) 원문 발췌:
+    Files: *
+    Copyright: 1990 Tatsuya Kato (kato@ntts.co.jp)
+    License: public-domain
+    Comment:
+     The original xneko was written  by Masayuki Koba and modified to oneko by
+     Tatsuya Kato.
+    ...
+    License: public-domain
+     The (Japanese) README file, as well as the LSM file originally distributed
+     with oneko on sunsite both say that oneko is public domain software.
+
+  원본 README (일본어, Tatsuya Kato) 해당 줄:
+    ＃ 基本的にＰＤＳですが、バグ修正や機能拡張は（こっそりでもいいですか
+    ＃ ら）私（kato@ntts.co.jp）に教えて下さいね。
+    ("기본적으로 PDS(퍼블릭 도메인 소프트웨어)입니다")
+
+표기 문구 (앱 메뉴에 표시)
+  oneko cat bitmaps from xneko by Masayuki Koba and oneko by Tatsuya Kato (public domain)
+
+사용한 파일 (neko 고양이 그림만)
+  bitmaps/neko/{mati2,mati3,jare2,kaki1,kaki2,awake,sleep1,sleep2,right1,right2}.xbm
+  bitmasks/neko/<같은 이름>_mask.xbm
+  사용하지 않은 것: sakura, tomoyo (카드캡터 사쿠라 캐릭터, CLAMP), bsd_daemon
+  (BSD Daemon Copyright 1988 Marshall Kirk McKusick) — 권리 문제로 제외. dog, tora도 쓰지 않음.
+
+출처 URL
+  https://sources.debian.org/src/oneko/1.2.sakura.6-16/
+  https://sources.debian.org/src/oneko/1.2.sakura.6-16/debian/copyright/
+  https://sources.debian.org/src/oneko/1.2.sakura.6-16/README/
+  https://sources.debian.org/src/oneko/1.2.sakura.6-16/bitmaps/neko/
+  https://sources.debian.org/src/oneko/1.2.sakura.6-16/bitmasks/neko/
+  (실제로 받은 주소: https://sources.debian.org/data/main/o/oneko/1.2.sakura.6-16/...)
+
+받은 날짜
+  2026-09-29
+
+바꾼 점
+  - XBM(1비트) 그림과 마스크를 PNG(RGBA)로 형식 변환. 원본 기본색 그대로:
+    비트 1 = 검정, 비트 0 = 흰색, 마스크 밖 = 투명.
+  - 32x32 원본을 모든 프레임 공통 영역(x 0–31, y 2–29, 32x28)으로 잘라냄
+    (포즈가 바뀔 때 크기·바닥 위치가 같도록 같은 영역을 씀).
+  - 정수 4배 최근접 이웃 확대 (128x112 px). 새로 그린 부분 없음.
+  - 파일 이름은 원본 이름을 그대로 씀 (mati2.png = mati2.xbm).
+
+참고
+  이 고양이 그림은 그보다 앞선 "Neko" 프로그램들의 계보를 잇는 것으로 알려져 있다.
+  이 팩은 oneko/Debian이 밝힌 퍼블릭 도메인 표기에 근거한다.
+
+원본 파일 SHA-256
+d04ed12400722b62b0cfabce303ae45d1381d62c0f99199641c97bf144d08c91  bitmaps/neko/mati2.xbm
+c75fbfbc69cbf0c16da78cc9cdecf1491794e9b84a5eb948970b7262b2457bb9  bitmasks/neko/mati2_mask.xbm
+05bc987995788442ddffde20dab7dbb684958c91c6d734578eb2a26fcb38e088  bitmaps/neko/mati3.xbm
+afbcffe2c2749ba407e5e32a781e20b9e3d54fbaf300e5e51f187e12aff9cc1c  bitmasks/neko/mati3_mask.xbm
+218145a521bf34cb3affcc6d0d9c6e26613e8d47d4444d35923dbd0a49b69f2a  bitmaps/neko/jare2.xbm
+383c9cbd153111287badf85258fa31951fbe8f18718c37e289d6ed8a3f504033  bitmasks/neko/jare2_mask.xbm
+1dfa49b1f45afee3d885d9aee5ae9d1b43ad0d34e8fb14fa3643af07cfca2012  bitmaps/neko/kaki1.xbm
+b5866c16692b6ce0d1897c0cba565b800819bed83b17decb112df5fb40ead2f9  bitmasks/neko/kaki1_mask.xbm
+36d45ef12f505153925566f071dbd8a7e9b8d4302aadc8c902d439a12529a98a  bitmaps/neko/kaki2.xbm
+8a4772c22f1ee6f46ede56f182bf70baf06d089ead4661e809bbb1dc607c6295  bitmasks/neko/kaki2_mask.xbm
+2d1eb610c3b7eb4f4b5a2a598b87795d5d752a154c8217fb339f6a3418148adf  bitmaps/neko/awake.xbm
+8fe23166076054a3e51a754000b618fdd6682461f62b66867b248316a088c80f  bitmasks/neko/awake_mask.xbm
+080b9c92563a057c6a96455cbd829ef6fcf4ec4c07104ff7d556ac3136afeeac  bitmaps/neko/sleep1.xbm
+fa23bc474de867e639adf9e001e1824240fc39b04e49a2727a936c6a74fe50b6  bitmasks/neko/sleep1_mask.xbm
+b6749650d7cd33dfe7dc95c4c4c845a0f2bbdb72cb114bccf0594a1a1f1f4c99  bitmaps/neko/sleep2.xbm
+051292d1eb3c8191a5ef0b177052132069da2af8a2a565119da0cce6549c1159  bitmasks/neko/sleep2_mask.xbm
+58f980462c7caf07f4f679c81da5d8ff771dd4696fb47a20b61b5a816864cbe1  bitmaps/neko/right1.xbm
+584ada72a6114030b4c11a369d6457ff730ae443a9b04067e9e560633a7cb9bf  bitmasks/neko/right1_mask.xbm
+cb5fc615fbc7946059a5fae22ffcaffb0cdc1bd29ac210dc11b065df53d2b540  bitmaps/neko/right2.xbm
+59ac18abb4cd85a87a79aea303c9e61e6dfb4dab2f5abd28ca050db60336fcf5  bitmasks/neko/right2_mask.xbm
+  327552e19eb387a0e64cdb51c7e8591f58ff6a0a183a7040339cb303cf2d9d3b  debian/copyright
+
+비공식 팩입니다. oneko 프로젝트 및 Debian 프로젝트와 관련이 없으며 보증받지 않았습니다.
