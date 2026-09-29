@@ -6,19 +6,23 @@
 import AppKit
 import JavaScriptCore
 
-let stateDir = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".cli-pet")
+// 펫 데이터 폴더. 테스트할 때는 CLI_PET_STATE_DIR 로 바꿀 수 있다
+let stateDir = ProcessInfo.processInfo.environment["CLI_PET_STATE_DIR"].map { URL(fileURLWithPath: $0) }
+    ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".cli-pet")
 let statusURL = stateDir.appendingPathComponent("status.json")
 let posURL = stateDir.appendingPathComponent("position.json")
 
 struct Status: Codable {
-    var state: String  // idle | working | done | alert | say
+    var state: String  // idle | working | think | done | alert | say
     var text: String
     var time: Double
+    var key: String? = nil            // 대사 상황 (docs/lines.md). 있으면 펫이 대사를 고른다
+    var vars: [String: String]? = nil // 대사 안의 {칸}에 들어갈 값
 }
 
-func writeStatus(_ state: String, _ text: String) {
+func writeStatus(_ state: String, _ text: String, key: String? = nil, vars: [String: String] = [:]) {
     try? FileManager.default.createDirectory(at: stateDir, withIntermediateDirectories: true)
-    let s = Status(state: state, text: text, time: Date().timeIntervalSince1970)
+    let s = Status(state: state, text: text, time: Date().timeIntervalSince1970, key: key, vars: key == nil ? nil : vars)
     if let data = try? JSONEncoder().encode(s) {
         try? data.write(to: statusURL, options: .atomic)
     }
@@ -34,38 +38,119 @@ func clip(_ s: String, _ n: Int = 80) -> String {
     return trimmed.count > n ? String(trimmed.prefix(n - 1)) + "…" : trimmed
 }
 
+// MARK: - 대사 (docs/lines.md)
+
+let linesURL = stateDir.appendingPathComponent("lines.json")
+
+// 상황, 기본 대사, 설명. 순서대로 lines.json 템플릿에 들어간다
+let defaultLines: [(key: String, lines: [String], help: String)] = [
+    ("hello", ["안녕! 👋"], "앱을 켰을 때, Claude Code 세션이 시작될 때"),
+    ("think", ["음… 생각 중"], "Claude Code에 프롬프트를 보냈을 때"),
+    ("tool.read", ["📖 {file}"], "파일 읽기 — {file}"),
+    ("tool.edit", ["✏️ {file}"], "파일 수정 — {file}"),
+    ("tool.run", ["$ {command}"], "명령 실행 — {command}"),
+    ("tool.search", ["🔍 {pattern}"], "검색 — {pattern}"),
+    ("tool.web", ["🌐 {target}"], "웹 보기·검색 — {target}"),
+    ("tool.agent", ["🤖 {desc}"], "도우미 에이전트 — {desc}"),
+    ("tool.todo", ["📝 할 일 정리 중"], "할 일 목록 정리"),
+    ("tool.mcp", ["🔌 {name}"], "MCP 도구 — {name}"),
+    ("tool.other", ["🔧 {name}"], "그 밖의 도구 — {name}"),
+    ("alert", ["{message}"], "권한 요청·입력 기다림 — {message}는 Claude Code가 보낸 문장"),
+    ("done", ["다 했어! ✨"], "Claude Code가 답을 끝냈을 때"),
+    ("pipe.done", ["끝났어! ✨"], "cli-pet pipe 로 보던 명령이 끝났을 때"),
+    ("poke", ["히히", "간지러워!", "왜~?", "놀아줘!", "♪", "헤헤", "뭐해?"], "클릭했을 때"),
+    ("dizzy", ["어지러워~ 😵"], "빠르게 5번 클릭했을 때"),
+    ("wake", ["으음… 왜~"], "자고 있을 때 클릭했을 때"),
+    ("held", [], "들어 올렸을 때"),
+    ("land", [], "내려놓았을 때"),
+    ("switch", ["짠! {name}"], "펫을 바꿨을 때 — {name}"),
+]
+
+// 대사 찾는 순서: ~/.cli-pet/lines.json → 지금 팩의 pack.json "lines" → 기본 대사
+final class Lines {
+    nonisolated(unsafe) static let shared = Lines()
+    var pack: [String: [String]] = [:]
+    private var user: [String: [String]] = [:]
+    private var userMtime: Date?
+    private let defaults = Dictionary(uniqueKeysWithValues: defaultLines.map { ($0.key, $0.lines) })
+
+    private func reloadIfNeeded() {
+        let m = (try? FileManager.default.attributesOfItem(atPath: linesURL.path))?[.modificationDate] as? Date
+        guard m != userMtime else { return }
+        userMtime = m
+        user = [:]
+        guard let data = try? Data(contentsOf: linesURL),
+              let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return }
+        for (k, v) in obj where !k.hasPrefix("_") {
+            if let one = v as? String { user[k] = [one] } else if let many = v as? [String] { user[k] = many }
+        }
+    }
+
+    // 정해진 상황이면 그 대사(빈 목록이면 nil = 말하지 않음), 모르는 상황이면 fallback
+    func resolve(_ key: String, _ vars: [String: String] = [:], fallback: String? = nil) -> String? {
+        reloadIfNeeded()
+        guard let list = user[key] ?? pack[key] ?? defaults[key] else { return fallback }
+        guard var line = list.randomElement() else { return nil }
+        for (k, v) in vars { line = line.replacingOccurrences(of: "{\(k)}", with: v) }
+        return line.isEmpty ? nil : line
+    }
+}
+
+// lines.json이 없으면 기본 대사로 채워 만든다
+@discardableResult
+func ensureLinesFile() -> URL {
+    guard !FileManager.default.fileExists(atPath: linesURL.path) else { return linesURL }
+    try? FileManager.default.createDirectory(at: stateDir, withIntermediateDirectories: true)
+    func json(_ v: Any) -> String {
+        String(data: try! JSONSerialization.data(withJSONObject: v, options: [.fragmentsAllowed, .withoutEscapingSlashes]), encoding: .utf8)!
+    }
+    var out = ["{",
+               "  \"_설명\": \(json("상황마다 펫이 할 말이에요. 여러 개면 무작위로 골라요. 빈 목록 []이면 말하지 않아요. 줄을 지우면 기본 대사로 돌아가요. {file} 같은 칸은 그때의 값으로 바뀌어요. 저장하면 바로 적용돼요. 자세한 설명: https://github.com/APapeIsName/cli-pet/blob/main/docs/lines.md")),"]
+    for (i, d) in defaultLines.enumerated() {
+        out.append("  \(json(d.key)): \(json(d.lines))" + (i == defaultLines.count - 1 ? "" : ","))
+    }
+    out.append("}")
+    try? (out.joined(separator: "\n") + "\n").write(to: linesURL, atomically: true, encoding: .utf8)
+    return linesURL
+}
+
 // MARK: - 훅 / 명령줄 모드
 
-func describeTool(_ tool: String, _ input: [String: Any]) -> String {
+func toolLine(_ tool: String, _ input: [String: Any]) -> (key: String, vars: [String: String]) {
     func str(_ k: String) -> String { (input[k] as? String) ?? "" }
     func base(_ k: String) -> String { (str(k) as NSString).lastPathComponent }
     switch tool {
-    case "Bash": return "$ " + clip(str("command"), 70)
-    case "Read": return "📖 " + base("file_path")
-    case "Edit", "MultiEdit", "Write": return "✏️ " + base("file_path")
-    case "NotebookEdit": return "✏️ " + base("notebook_path")
-    case "Grep", "Glob": return "🔍 " + clip(str("pattern"), 60)
-    case "WebFetch": return "🌐 " + (URL(string: str("url"))?.host ?? "웹 보는 중")
-    case "WebSearch": return "🌐 " + clip(str("query"), 60)
-    case "Task", "Agent": return "🤖 " + clip(str("description"), 60)
-    case "TodoWrite": return "📝 할 일 정리 중"
+    case "Bash": return ("tool.run", ["command": clip(str("command"), 70)])
+    case "Read": return ("tool.read", ["file": base("file_path")])
+    case "Edit", "MultiEdit", "Write": return ("tool.edit", ["file": base("file_path")])
+    case "NotebookEdit": return ("tool.edit", ["file": base("notebook_path")])
+    case "Grep", "Glob": return ("tool.search", ["pattern": clip(str("pattern"), 60)])
+    case "WebFetch": return ("tool.web", ["target": URL(string: str("url"))?.host ?? "웹"])
+    case "WebSearch": return ("tool.web", ["target": clip(str("query"), 60)])
+    case "Task", "Agent": return ("tool.agent", ["desc": clip(str("description"), 60)])
+    case "TodoWrite": return ("tool.todo", [:])
     default:
-        if tool.hasPrefix("mcp__") { return "🔌 " + (tool.components(separatedBy: "__").last ?? tool) }
-        return "🔧 " + tool
+        if tool.hasPrefix("mcp__") { return ("tool.mcp", ["name": tool.components(separatedBy: "__").last ?? tool]) }
+        return ("tool.other", ["name": tool])
     }
+}
+
+// 상황 키와 함께 기본 문장도 적어 둔다 (예전 버전 앱도 읽을 수 있게)
+func writeLine(_ state: String, _ key: String, _ vars: [String: String] = [:]) {
+    writeStatus(state, Lines.shared.resolve(key, vars) ?? "", key: key, vars: vars)
 }
 
 func runHook() {
     let data = FileHandle.standardInput.readDataToEndOfFile()
     guard let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return }
     switch obj["hook_event_name"] as? String ?? "" {
-    case "SessionStart": writeStatus("say", "안녕! 👋")
-    case "UserPromptSubmit": writeStatus("think", "음… 생각 중")
+    case "SessionStart": writeLine("say", "hello")
+    case "UserPromptSubmit": writeLine("think", "think")
     case "PreToolUse":
-        writeStatus("working", describeTool(obj["tool_name"] as? String ?? "",
-                                            obj["tool_input"] as? [String: Any] ?? [:]))
-    case "Notification": writeStatus("alert", clip(obj["message"] as? String ?? "나 좀 봐줘!"))
-    case "Stop": writeStatus("done", "다 했어! ✨")
+        let (key, vars) = toolLine(obj["tool_name"] as? String ?? "", obj["tool_input"] as? [String: Any] ?? [:])
+        writeLine("working", key, vars)
+    case "Notification": writeLine("alert", "alert", ["message": clip(obj["message"] as? String ?? "나 좀 봐줘!")])
+    case "Stop": writeLine("done", "done")
     case "SessionEnd": writeStatus("idle", "")
     default: break
     }
@@ -88,7 +173,7 @@ func runPipe() {
         }
     }
     if let p = pending { writeStatus("working", p); usleep(400_000) }
-    writeStatus("done", "끝났어! ✨")
+    writeLine("done", "pipe.done")
 }
 
 // MARK: - 팩
@@ -113,6 +198,7 @@ struct PackInfo: Decodable {
     var size: CGFloat?
     var fps: Double?
     var squash: Bool?
+    var lines: [String: PoseFiles]?  // 이 팩만의 대사 (docs/lines.md)
     var zzz: Bool?    // true면 sleep 포즈가 있어도 zzz를 그린다
     var fit: String?  // "each"면 포즈마다 size 높이에 맞춘다 (원본 크기가 제각각인 팩용)
     var category: String?
@@ -382,7 +468,8 @@ final class PetView: NSView {
             pack = nil
         }
         saveSelectedPackID(pack?.info.id ?? creature.id)
-        if announce { jumpAt = t; say("짠! \(pack?.info.name ?? creature.name)", 2.5) }
+        Lines.shared.pack = (pack?.info.lines ?? [:]).mapValues { $0.files }
+        if announce { jumpAt = t; sayLine("switch", ["name": pack?.info.name ?? creature.name], for: 2.5) }
     }
 
     var entries: [PetEntry] {
@@ -417,10 +504,11 @@ final class PetView: NSView {
         mood = s.state
         moodSince = t
         lastEvent = t
-        if s.text.isEmpty {
+        let text = s.key.map { Lines.shared.resolve($0, s.vars ?? [:], fallback: s.text) ?? "" } ?? s.text
+        if text.isEmpty {
             bubbleText = nil
         } else {
-            bubbleText = s.text
+            bubbleText = text
             bubbleUntil = t + (s.state == "working" || s.state == "think" ? 60 : s.state == "alert" ? 30 : 6)
         }
         if s.state == "done" { happyUntil = t + 3 }
@@ -428,19 +516,27 @@ final class PetView: NSView {
 
     func say(_ s: String, _ dur: Double) { bubbleText = s; bubbleUntil = t + dur }
 
+    // 상황 키로 말하기. 대사가 비어 있으면 조용히 있는다
+    func sayLine(_ key: String, _ vars: [String: String] = [:], for dur: Double) {
+        if let text = Lines.shared.resolve(key, vars) { say(text, dur) }
+    }
+
     func poke() {
+        let wasSleeping = sleeping
         lastEvent = t
         clickTimes = clickTimes.filter { t - $0 < 1.5 } + [t]
         if clickTimes.count >= 5 {
             clickTimes.removeAll()
             dizzyUntil = t + 2.5
-            say("어지러워~ 😵", 2.5)
+            sayLine("dizzy", for: 2.5)
             return
         }
         jumpAt = t
         happyUntil = t + 1
-        if mood != "working" && mood != "think" && mood != "alert" {
-            say(["히히", "간지러워!", "왜~?", "놀아줘!", "♪", "헤헤", "뭐해?"].randomElement()!, 1.8)
+        if wasSleeping {
+            sayLine("wake", for: 2)
+        } else if mood != "working" && mood != "think" && mood != "alert" {
+            sayLine("poke", for: 1.8)
         }
     }
 
@@ -455,7 +551,7 @@ final class PetView: NSView {
     override func mouseDragged(with e: NSEvent) {
         let p = NSEvent.mouseLocation
         let dx = p.x - downMouse.x, dy = p.y - downMouse.y
-        if hypot(dx, dy) > 3 { dragged = true; dragging = true }
+        if hypot(dx, dy) > 3 && !dragged { dragged = true; dragging = true; sayLine("held", for: 1.5) }
         if dragged { window?.setFrameOrigin(NSPoint(x: downOrigin.x + dx, y: downOrigin.y + dy)) }
     }
 
@@ -463,6 +559,7 @@ final class PetView: NSView {
         if dragged {
             dragging = false
             jumpAt = t - jumpDur  // 착지 찌그러짐만 재생
+            sayLine("land", for: 1.5)
             savePosition()
             return
         }
@@ -480,6 +577,9 @@ final class PetView: NSView {
         reset.target = self
         menu.addItem(reset)
         menu.addItem(packMenuItem())
+        let lines = NSMenuItem(title: "대사 바꾸기…", action: #selector(editLines), keyEquivalent: "")
+        lines.target = self
+        menu.addItem(lines)
         if let pack, let credit = pack.info.credit {
             let line = [credit, pack.info.license].compactMap { $0 }.joined(separator: " · ")
             let info = NSMenuItem(title: "그림: " + line, action: nil, keyEquivalent: "")
@@ -571,6 +671,15 @@ final class PetView: NSView {
         let item = NSMenuItem(title: "펫 바꾸기", action: nil, keyEquivalent: "")
         item.submenu = root
         return item
+    }
+
+    @objc func editLines() {
+        let url = ensureLinesFile()
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        p.arguments = ["-e", url.path]  // 텍스트 편집기로 연다
+        try? p.run()
+        say("저장하면 바로 바뀌어요", 3)
     }
 
     @objc func openCredits() {
@@ -1487,7 +1596,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.orderFrontRegardless()
 
         lastMtime = mtime()
-        view.say("안녕! 👋", 3)
+        view.sayLine("hello", for: 3)
 
         let anim = Timer(timeInterval: 1.0 / 60, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.view.tick() }
@@ -1521,6 +1630,7 @@ let usage = """
   cli-pet say <글>   펫이 말하게 하기
   cli-pet hook       Claude Code 훅용 (stdin JSON)
   명령 | cli-pet pipe 명령 출력을 펫이 보여주기
+  cli-pet lines      상황별 대사 파일 만들기·위치 보기
   cli-pet pack new <id> [그림 폴더]   커스텀 팩 만들기
   cli-pet pack check <id|폴더>       커스텀 팩 검사
   cli-pet install    Claude Code 연결 + 로그인 시 자동 실행 (--no-hooks: 연결은 빼고)
@@ -1544,6 +1654,11 @@ case "install":
     exit(runSetup(true, hooks: !args.contains("--no-hooks")))
 case "pack":
     exit(runPackCommand(Array(args.dropFirst())))
+case "lines":
+    let url = ensureLinesFile()
+    print("대사 파일: \(url.path)")
+    print("고치고 저장하면 바로 적용돼요. 상황 목록:")
+    for d in defaultLines { print("  \(d.key.padding(toLength: 12, withPad: " ", startingAt: 0)) \(d.help)") }
 case "uninstall":
     exit(runSetup(false))
 case "say":

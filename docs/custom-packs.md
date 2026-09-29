@@ -51,7 +51,7 @@ cli-pet pack new anime-myseries-mychar ~/Desktop/내그림폴더
 }
 ```
 
-전체 키 설명은 [pack-format.md](pack-format.md)에 있어요. `"group": 3`을 넣으면 메뉴에 "비상업"이 표시되고, `"zzz": true`를 넣으면 잘 때 zzz를 그려요.
+전체 키 설명은 [pack-format.md](pack-format.md)에 있어요. `"lines"`로 캐릭터만의 대사를 넣을 수 있어요 ([lines.md](lines.md)). `"group": 3`을 넣으면 메뉴에 "비상업"이 표시되고, `"zzz": true`를 넣으면 잘 때 zzz를 그려요.
 
 ## 4. 검사
 

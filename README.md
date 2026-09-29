@@ -75,7 +75,7 @@ cd cli-pet
 | 빠르게 5번 클릭 | 어지러워해요 |
 | 드래그 | 대롱대롱, 놓으면 착지 |
 | 90초 동안 가만히 | 잠들어요 |
-| 오른쪽 클릭 | 메뉴: 펫 바꾸기, 구석으로 보내기, Claude Code 연결, 로그인 시 자동 실행, 종료 |
+| 오른쪽 클릭 | 메뉴: 펫 바꾸기, 대사 바꾸기, 구석으로 보내기, Claude Code 연결, 로그인 시 자동 실행, 종료 |
 
 터미널에서도 부를 수 있어요 (Homebrew로 설치했다면 `cli-pet`, 아니면 `~/Applications/CLIPet.app/Contents/MacOS/cli-pet`):
 
@@ -97,6 +97,12 @@ npm test | cli-pet pipe       # 명령 출력을 펫이 말풍선으로 보여�
 
 자체 캐릭터와 동물은 코드로 그려서 모든 표정이 있어요. 다른 팩은 권리자가 공식으로 배포한 그림을 그대로 쓰기 때문에, 그림이 없는 표정은 비슷한 표정으로 대신해요.
 
+### 대사 바꾸기
+
+펫 오른쪽 클릭 → **대사 바꾸기…** (또는 `cli-pet lines`)로 클릭했을 때, 작업이 끝났을 때 같은 상황마다 할 말을 바꿀 수 있어요. 저장하면 바로 적용돼요. 자세한 방법은 [docs/lines.md](docs/lines.md)를 보세요.
+
+### 기본 팩과 커스텀 팩
+
 메뉴는 **기본 팩**(앱에 들어 있는 것)과 **커스텀 팩**(직접 넣은 것)으로 나뉘어 있어요.
 
 ### 커스텀 팩 만들기
@@ -112,6 +118,7 @@ cli-pet pack check anime-myseries-mychar                      # 검사
 
 ## 문서
 
+- [docs/lines.md](docs/lines.md) — 상황별 대사 바꾸기
 - [docs/custom-packs.md](docs/custom-packs.md) — 커스텀 팩 만들기
 - [docs/pack-format.md](docs/pack-format.md) — 팩 형식, 분류와 이름 짓는 규칙
 - [docs/animation-spec.md](docs/animation-spec.md) — 상태, 포즈, 트리거 분류

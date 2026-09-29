@@ -83,6 +83,7 @@ packs/gopher/
 | `size` | | 화면에 보이는 높이, pt 단위 (기본 80) |
 | `fps` | | 프레임 배열의 재생 속도 (기본 6) |
 | `squash` | | `false`면 찌그러짐·늘이기 모션을 끈다 (기본 `true`) |
+| `lines` | | 이 팩만의 대사. 형식은 [lines.md](lines.md) |
 | `zzz` | | `true`면 `sleep` 포즈가 있어도 잘 때 zzz를 그린다 (기본: `sleep` 포즈가 없을 때만) |
 | `fit` | | `"each"`면 포즈마다 따로 `size` 높이에 맞춘다. 원본 크기가 제각각인 팩용 (기본: 모든 포즈에 `normal` 기준 배율) |
 | `poses` | ○ | 포즈 이름 → 파일 하나, 또는 프레임 배열. `normal`만 필수 |
