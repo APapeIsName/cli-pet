@@ -116,21 +116,47 @@ func ensureLinesFile() -> URL {
 
 // MARK: - 훅 / 명령줄 모드
 
+// 도구마다 이름이 달라서 소문자로 맞춰 묶는다 (Claude, Codex, Copilot, Cursor, Gemini)
 func toolLine(_ tool: String, _ input: [String: Any]) -> (key: String, vars: [String: String]) {
-    func str(_ k: String) -> String { (input[k] as? String) ?? "" }
-    func base(_ k: String) -> String { (str(k) as NSString).lastPathComponent }
-    switch tool {
-    case "Bash": return ("tool.run", ["command": clip(str("command"), 70)])
-    case "Read": return ("tool.read", ["file": base("file_path")])
-    case "Edit", "MultiEdit", "Write": return ("tool.edit", ["file": base("file_path")])
-    case "NotebookEdit": return ("tool.edit", ["file": base("notebook_path")])
-    case "Grep", "Glob": return ("tool.search", ["pattern": clip(str("pattern"), 60)])
-    case "WebFetch": return ("tool.web", ["target": URL(string: str("url"))?.host ?? "웹"])
-    case "WebSearch": return ("tool.web", ["target": clip(str("query"), 60)])
-    case "Task", "Agent": return ("tool.agent", ["desc": clip(str("description"), 60)])
-    case "TodoWrite": return ("tool.todo", [:])
+    func str(_ keys: String...) -> String {
+        for k in keys {
+            if let v = input[k] as? String, !v.isEmpty { return v }
+            if let a = input[k] as? [String], let last = a.last { return last }  // ["bash", "-lc", "명령"]
+        }
+        return ""
+    }
+    func file(_ keys: String...) -> String {
+        for k in keys { if let v = input[k] as? String, !v.isEmpty { return (v as NSString).lastPathComponent } }
+        return ""
+    }
+    let name = tool.lowercased()
+    switch name {
+    case "bash", "shell", "run_shell_command", "exec_command", "local_shell", "terminal":
+        return ("tool.run", ["command": clip(str("command", "cmd"), 70)])
+    case "read", "read_file", "view", "read_many_files":
+        return ("tool.read", ["file": file("file_path", "absolute_path", "path", "target_file")])
+    case "edit", "multiedit", "write", "write_file", "replace", "notebookedit", "edit_file", "create", "str_replace_based_edit_tool":
+        return ("tool.edit", ["file": file("file_path", "absolute_path", "path", "target_file", "notebook_path")])
+    case "apply_patch":
+        // Codex: 패치 본문의 "*** Update File: 경로" 줄에서 파일 이름을 꺼낸다
+        let patch = str("command", "input", "patch")
+        let f = patch.components(separatedBy: "\n").first { $0.hasPrefix("*** Update File:") || $0.hasPrefix("*** Add File:") || $0.hasPrefix("*** Delete File:") }
+        let path = f.map { String($0.split(separator: ":", maxSplits: 1).last ?? "").trimmingCharacters(in: .whitespaces) } ?? ""
+        return ("tool.edit", ["file": path.isEmpty ? "패치" : (path as NSString).lastPathComponent])
+    case "grep", "glob", "grep_search", "search", "find", "list_directory", "ls":
+        return ("tool.search", ["pattern": clip(str("pattern", "query", "path"), 60)])
+    case "webfetch", "web_fetch":
+        let url = str("url", "prompt")
+        return ("tool.web", ["target": URL(string: url)?.host ?? clip(url, 60)])
+    case "websearch", "web_search", "google_web_search":
+        return ("tool.web", ["target": clip(str("query"), 60)])
+    case "task", "agent", "spawn_agent":
+        return ("tool.agent", ["desc": clip(str("description", "prompt", "task"), 60)])
+    case "todowrite", "update_plan", "write_todos":
+        return ("tool.todo", [:])
     default:
-        if tool.hasPrefix("mcp__") { return ("tool.mcp", ["name": tool.components(separatedBy: "__").last ?? tool]) }
+        if name.hasPrefix("mcp__") { return ("tool.mcp", ["name": tool.components(separatedBy: "__").last ?? tool]) }
+        if name.hasPrefix("mcp:") { return ("tool.mcp", ["name": String(tool.dropFirst(4))]) }
         return ("tool.other", ["name": tool])
     }
 }
@@ -140,19 +166,57 @@ func writeLine(_ state: String, _ key: String, _ vars: [String: String] = [:]) {
     writeStatus(state, Lines.shared.resolve(key, vars) ?? "", key: key, vars: vars)
 }
 
-func runHook() {
+// 이벤트 이름을 소문자·글자만으로 맞춘 뒤 펫의 상황으로 바꾼다
+let thinkEvents: Set<String> = ["userpromptsubmit", "userpromptsubmitted", "beforesubmitprompt", "beforeagent", "promptsubmit", "preinvocation"]
+let toolEvents: Set<String> = ["pretooluse", "beforetool"]
+let alertEvents: Set<String> = ["notification", "permissionrequest"]
+let doneEvents: Set<String> = ["stop", "agentstop", "afteragent", "agentturncomplete", "sessionidle"]
+
+func runHook(_ options: [String]) {
+    // cli-pet hook [--source 도구] [--event 이벤트] [--json]
+    var forcedEvent: String?, jsonOut = false
+    var i = 0
+    while i < options.count {
+        switch options[i] {
+        case "--event": if i + 1 < options.count { forcedEvent = options[i + 1]; i += 1 }
+        case "--source": i += 1
+        case "--json": jsonOut = true
+        default: break
+        }
+        i += 1
+    }
+    // Gemini·Cursor는 표준 출력이 JSON이어야 해서 빈 객체를 돌려준다
+    defer { if jsonOut { print("{}") } }
     let data = FileHandle.standardInput.readDataToEndOfFile()
-    guard let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return }
-    switch obj["hook_event_name"] as? String ?? "" {
-    case "SessionStart": writeLine("say", "hello")
-    case "UserPromptSubmit": writeLine("think", "think")
-    case "PreToolUse":
-        let (key, vars) = toolLine(obj["tool_name"] as? String ?? "", obj["tool_input"] as? [String: Any] ?? [:])
+    let obj = ((try? JSONSerialization.jsonObject(with: data)) as? [String: Any]) ?? [:]
+    let rawEvent = forcedEvent ?? (obj["hook_event_name"] as? String) ?? (obj["hookEventName"] as? String) ?? ""
+    let event = rawEvent.lowercased().filter(\.isLetter)
+    let toolName = (obj["tool_name"] as? String) ?? (obj["toolName"] as? String) ?? ((obj["toolCall"] as? [String: Any])?["name"] as? String) ?? ""
+    var input = (obj["tool_input"] as? [String: Any]) ?? (obj["toolInput"] as? [String: Any]) ?? ((obj["toolCall"] as? [String: Any])?["args"] as? [String: Any]) ?? [:]
+    if input.isEmpty, let args = obj["toolArgs"] as? String, let d = args.data(using: .utf8),
+       let parsed = (try? JSONSerialization.jsonObject(with: d)) as? [String: Any] {
+        input = parsed  // Copilot camelCase: toolArgs가 JSON 문자열
+    }
+
+    switch event {
+    case "sessionstart":
+        writeLine("say", "hello")
+    case _ where thinkEvents.contains(event):
+        writeLine("think", "think")
+    case _ where toolEvents.contains(event):
+        let (key, vars) = toolLine(toolName, input)
         writeLine("working", key, vars)
-    case "Notification": writeLine("alert", "alert", ["message": clip(obj["message"] as? String ?? "나 좀 봐줘!")])
-    case "Stop": writeLine("done", "done")
-    case "SessionEnd": writeStatus("idle", "")
-    default: break
+    case "beforeshellexecution":
+        writeLine("working", "tool.run", ["command": clip((obj["command"] as? String) ?? "", 70)])
+    case _ where alertEvents.contains(event):
+        let message = (obj["message"] as? String) ?? (toolName.isEmpty ? "나 좀 봐줘!" : "허락이 필요해요: \(toolName)")
+        writeLine("alert", "alert", ["message": clip(message)])
+    case _ where doneEvents.contains(event):
+        writeLine("done", "done")
+    case "sessionend":
+        writeStatus("idle", "")
+    default:
+        break
     }
 }
 
@@ -645,10 +709,7 @@ final class PetView: NSView {
             menu.addItem(info)
         }
         menu.addItem(.separator())
-        let hooks = NSMenuItem(title: "Claude Code 연결", action: #selector(toggleHooks), keyEquivalent: "")
-        hooks.target = self
-        hooks.state = hooksInstalled() ? .on : .off
-        menu.addItem(hooks)
+        menu.addItem(connectMenuItem())
         let login = NSMenuItem(title: "로그인할 때 자동 실행", action: #selector(toggleLogin), keyEquivalent: "")
         login.target = self
         login.state = loginItemOn() ? .on : .off
@@ -828,14 +889,42 @@ final class PetView: NSView {
         NSWorkspace.shared.open(dir)
     }
 
-    @objc func toggleHooks() {
-        let on = !hooksInstalled()
+    func connectMenuItem() -> NSMenuItem {
+        let sub = NSMenu()
+        for t in targets {
+            let installed = targetInstalled(t)
+            var title = t.name
+            if case .viaClaude = t.kind { title += "  · Claude Code 연결로 동작" } else if !installed { title += "  · 설치 안 됨" }
+            let item = NSMenuItem(title: title, action: #selector(toggleTarget(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = t.id
+            item.state = isConnected(t) ? .on : .off
+            if case .viaClaude = t.kind { item.action = nil; item.isEnabled = false }
+            sub.addItem(item)
+        }
+        sub.addItem(.separator())
+        let help = NSMenuItem(title: "다른 도구 연결하는 법…", action: #selector(openIntegrations), keyEquivalent: "")
+        help.target = self
+        sub.addItem(help)
+        let item = NSMenuItem(title: "AI 도구 연결", action: nil, keyEquivalent: "")
+        item.submenu = sub
+        if targets.contains(where: isConnected) { item.state = .on }
+        return item
+    }
+
+    @objc func toggleTarget(_ sender: NSMenuItem) {
+        guard let t = target(sender.representedObject as? String ?? "") else { return }
+        let on = !isConnected(t)
         do {
-            try setHooks(on)
-            say(on ? "이제 Claude Code 따라다닐게! (새 세션부터)" : "Claude Code 연결 끊었어", 4)
+            try setConnected(t, on)
+            say(on ? "\(t.name) 따라다닐게! " + (t.id == "codex" ? "(Codex에서 /hooks 로 신뢰해 줘)" : "(새 세션부터)") : "\(t.name) 연결 끊었어", 5)
         } catch {
             say("설정 파일을 못 읽었어 😢", 4)
         }
+    }
+
+    @objc func openIntegrations() {
+        NSWorkspace.shared.open(URL(string: "https://github.com/APapeIsName/cli-pet/blob/main/docs/integrations.md")!)
     }
 
     @objc func toggleLogin() {
@@ -1463,8 +1552,10 @@ final class PetView: NSView {
 // MARK: - 설치 (Claude Code 훅, 로그인 시 실행)
 
 let env = ProcessInfo.processInfo.environment
+// 다른 도구 설정 파일의 기준 홈. 테스트할 때는 CLI_PET_USER_HOME 으로 바꿀 수 있다
+let userHome = env["CLI_PET_USER_HOME"] ?? NSHomeDirectory()
 let claudeSettingsURL = URL(fileURLWithPath: env["CLI_PET_CLAUDE_SETTINGS"]
-    ?? NSHomeDirectory() + "/.claude/settings.json")
+    ?? userHome + "/.claude/settings.json")
 let agentURL = URL(fileURLWithPath: env["CLI_PET_LAUNCH_AGENT"]
     ?? NSHomeDirectory() + "/Library/LaunchAgents/local.cli-pet.plist")
 let exePath = stablePath(URL(fileURLWithPath: Bundle.main.executablePath ?? CommandLine.arguments[0])
@@ -1483,15 +1574,17 @@ func stablePath(_ path: String) -> String {
 let hookCommand = "'\(exePath)' hook"
 
 // JSON 순서와 들여쓰기를 지키려고 JS로 편집. 이 펫이 넣은 항목만 건드림.
+// Claude, Codex, Gemini는 같은 모양: { "hooks": { 이벤트: [ { "matcher"?, "hooks": [ { "type", "command" } ] } ] } }
 let hooksJS = """
-const isMine = h => Array.isArray(h && h.hooks) && h.hooks.some(x =>
-  typeof x.command === 'string' && /cli-pet'?\\s+hook$/.test(x.command));
+const isMineCmd = c => typeof c === 'string' && /cli-pet'?\\s+hook(\\s|$)/.test(c);
+const isMine = h => Array.isArray(h && h.hooks) && h.hooks.some(x => isMineCmd(x.command));
 function load(text) { return text.trim() ? JSON.parse(text) : {}; }
 function has(text) {
   const hooks = load(text).hooks || {};
   return Object.values(hooks).some(list => Array.isArray(list) && list.some(isMine));
 }
-function edit(text, cmd, add) {
+// events: [[이벤트, matcher 또는 null], ...]
+function edit(text, cmd, add, events) {
   const s = load(text);
   const hooks = s.hooks || {};
   for (const ev of Object.keys(hooks)) {
@@ -1500,8 +1593,8 @@ function edit(text, cmd, add) {
     if (!hooks[ev].length) delete hooks[ev];
   }
   if (add) {
-    for (const ev of ['SessionStart', 'UserPromptSubmit', 'PreToolUse', 'Notification', 'Stop']) {
-      const entry = ev === 'PreToolUse' ? { matcher: '*' } : {};
+    for (const [ev, matcher] of events) {
+      const entry = matcher ? { matcher } : {};
       entry.hooks = [{ type: 'command', command: cmd }];
       (hooks[ev] = hooks[ev] || []).push(entry);
     }
@@ -1512,42 +1605,139 @@ function edit(text, cmd, add) {
 """
 
 enum SetupError: Error, CustomStringConvertible {
-    case badSettings(String)
+    case badSettings(String, String)
     var description: String {
         switch self {
-        case .badSettings(let m): return "Claude 설정 파일(\(claudeSettingsURL.path))을 읽을 수 없어요: \(m)"
+        case .badSettings(let path, let m): return "설정 파일(\(path))을 읽을 수 없어요: \(m)"
         }
     }
 }
 
-func callHooksJS(_ fn: String, _ args: [Any]) throws -> JSValue {
+func callHooksJS(_ fn: String, _ args: [Any], path: String) throws -> JSValue {
     let ctx = JSContext()!
     ctx.evaluateScript(hooksJS)
     let result = ctx.objectForKeyedSubscript(fn).call(withArguments: args)
-    if let e = ctx.exception { throw SetupError.badSettings(e.toString()) }
+    if let e = ctx.exception { throw SetupError.badSettings(path, e.toString()) }
     return result!
 }
 
-func readClaudeSettings() -> String {
-    (try? String(contentsOf: claudeSettingsURL, encoding: .utf8)) ?? ""
-}
+// MARK: 연결할 수 있는 AI 도구 (docs/integrations.md)
 
-func hooksInstalled() -> Bool {
-    (try? callHooksJS("has", [readClaudeSettings()]).toBool()) ?? false
-}
-
-func setHooks(_ on: Bool) throws {
-    let text = readClaudeSettings()
-    let out = try callHooksJS("edit", [text, hookCommand, on]).toString()!
-    if out == text { return }
-    let fm = FileManager.default
-    if fm.fileExists(atPath: claudeSettingsURL.path) {
-        let backup = claudeSettingsURL.appendingPathExtension("cli-pet-backup")
-        try? fm.removeItem(at: backup)
-        try fm.copyItem(at: claudeSettingsURL, to: backup)
+struct Target {
+    enum Kind {
+        case nested([[Any]])     // 설정 파일 안의 hooks를 고친다
+        case ownFile([String])   // CLIPet 전용 파일을 따로 둔다 (Copilot)
+        case viaClaude           // Claude 훅을 그대로 가져다 쓴다 (Cursor)
     }
-    try fm.createDirectory(at: claudeSettingsURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-    try out.write(to: claudeSettingsURL, atomically: true, encoding: .utf8)
+    let id: String
+    let name: String
+    let file: URL
+    let appDir: URL           // 이 폴더가 있으면 설치된 것으로 본다
+    let kind: Kind
+    let command: String
+    let note: String          // 연결한 뒤 안내
+}
+
+let targets: [Target] = [
+    Target(id: "claude", name: "Claude Code", file: claudeSettingsURL, appDir: URL(fileURLWithPath: userHome + "/.claude"),
+           kind: .nested([["SessionStart", NSNull()], ["UserPromptSubmit", NSNull()], ["PreToolUse", "*"], ["Notification", NSNull()], ["Stop", NSNull()]]),
+           command: "'\(exePath)' hook", note: "새로 여는 Claude Code 세션부터 적용돼요. VS Code·JetBrains 확장, 데스크톱 앱, Cursor에서도 같이 동작해요."),
+    Target(id: "codex", name: "Codex", file: URL(fileURLWithPath: userHome + "/.codex/hooks.json"), appDir: URL(fileURLWithPath: userHome + "/.codex"),
+           kind: .nested([["SessionStart", NSNull()], ["UserPromptSubmit", NSNull()], ["PreToolUse", ".*"], ["PermissionRequest", NSNull()], ["Stop", NSNull()]]),
+           command: "'\(exePath)' hook --source codex", note: "Codex에서 /hooks 를 열어 CLIPet 훅을 한 번 신뢰(trust)해 주세요. CLI, IDE 확장, 앱에 모두 적용돼요."),
+    Target(id: "copilot", name: "GitHub Copilot CLI", file: URL(fileURLWithPath: userHome + "/.copilot/hooks/cli-pet.json"), appDir: URL(fileURLWithPath: userHome + "/.copilot"),
+           kind: .ownFile(["SessionStart", "UserPromptSubmit", "PreToolUse", "PermissionRequest", "Stop"]),
+           command: "'\(exePath)' hook --source copilot || true", note: "새로 여는 Copilot CLI 세션부터 적용돼요."),
+    Target(id: "gemini", name: "Gemini CLI", file: URL(fileURLWithPath: userHome + "/.gemini/settings.json"), appDir: URL(fileURLWithPath: userHome + "/.gemini"),
+           kind: .nested([["SessionStart", NSNull()], ["BeforeAgent", NSNull()], ["BeforeTool", ".*"], ["Notification", NSNull()], ["AfterAgent", NSNull()]]),
+           command: "'\(exePath)' hook --source gemini --json", note: "훅이 꺼져 있으면 Gemini CLI에서 /hooks enable-all 을 실행하세요."),
+    Target(id: "cursor", name: "Cursor", file: claudeSettingsURL, appDir: URL(fileURLWithPath: userHome + "/.cursor"),
+           kind: .viaClaude, command: "", note: "Cursor는 Claude Code 훅(~/.claude/settings.json)을 기본으로 가져와요. Claude Code를 연결하면 Cursor 에이전트에도 적용돼요."),
+]
+
+func target(_ id: String) -> Target? { targets.first { $0.id == id } }
+func targetInstalled(_ t: Target) -> Bool { FileManager.default.fileExists(atPath: t.appDir.path) }
+
+func readText(_ url: URL) -> String { (try? String(contentsOf: url, encoding: .utf8)) ?? "" }
+
+func isConnected(_ t: Target) -> Bool {
+    switch t.kind {
+    case .nested: return (try? callHooksJS("has", [readText(t.file)], path: t.file.path).toBool()) ?? false
+    case .ownFile: return FileManager.default.fileExists(atPath: t.file.path)
+    case .viaClaude: return isConnected(targets[0])
+    }
+}
+
+// 바꾸기 전 원본을 <파일>.cli-pet-backup 으로 남긴다
+func writeWithBackup(_ url: URL, _ text: String) throws {
+    let fm = FileManager.default
+    if fm.fileExists(atPath: url.path) {
+        let backup = url.appendingPathExtension("cli-pet-backup")
+        try? fm.removeItem(at: backup)
+        try fm.copyItem(at: url, to: backup)
+    }
+    try fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+    try text.write(to: url, atomically: true, encoding: .utf8)
+}
+
+func setConnected(_ t: Target, _ on: Bool) throws {
+    switch t.kind {
+    case .nested(let events):
+        let text = readText(t.file)
+        let out = try callHooksJS("edit", [text, t.command, on, events], path: t.file.path).toString()!
+        let backup = t.file.path + ".cli-pet-backup"
+        if !on && out.trimmingCharacters(in: .whitespacesAndNewlines) == "{}" && !FileManager.default.fileExists(atPath: backup) {
+            try? FileManager.default.removeItem(at: t.file)  // CLIPet이 새로 만든 파일이었으면 지운다
+        } else if out != text {
+            try writeWithBackup(t.file, out)
+        }
+    case .ownFile(let events):
+        if !on { try? FileManager.default.removeItem(at: t.file); return }
+        // Copilot: PascalCase 이벤트 이름이면 Claude와 같은 모양의 데이터를 보낸다
+        var hooks: [String: Any] = [:]
+        for ev in events { hooks[ev] = [["type": "command", "bash": t.command, "command": t.command, "timeoutSec": 5]] }
+        let data = try JSONSerialization.data(withJSONObject: ["version": 1, "hooks": hooks], options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
+        try FileManager.default.createDirectory(at: t.file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try data.write(to: t.file, options: .atomic)
+    case .viaClaude:
+        try setConnected(targets[0], on)
+    }
+}
+
+// 예전 이름 (Claude Code)
+func hooksInstalled() -> Bool { isConnected(targets[0]) }
+func setHooks(_ on: Bool) throws { try setConnected(targets[0], on) }
+
+func runConnect(_ ids: [String], _ on: Bool) -> Int32 {
+    let list = ids == ["all"] ? targets.filter { $0.id != "cursor" && targetInstalled($0) } : ids.compactMap { target($0) }
+    if list.isEmpty || list.count != (ids == ["all"] ? list.count : ids.count) {
+        print("사용법: cli-pet \(on ? "connect" : "disconnect") <" + targets.map(\.id).joined(separator: "|") + "|all>")
+        return 1
+    }
+    var code: Int32 = 0
+    for t in list {
+        do {
+            try setConnected(t, on)
+            print(on ? "✓ \(t.name) 연결" : "✓ \(t.name) 연결 해제")
+            if on { print("  \(t.note)") }
+            if on, case .nested = t.kind, FileManager.default.fileExists(atPath: t.file.path + ".cli-pet-backup") {
+                print("  원래 설정 백업: \(t.file.path).cli-pet-backup")
+            }
+            if on && !targetInstalled(t) { print("  (이 Mac에서 \(t.name) 설정 폴더를 못 찾았어요. 설치한 뒤 쓰면 적용돼요)") }
+        } catch {
+            print("✗ \(t.name): \(error)")
+            code = 1
+        }
+    }
+    return code
+}
+
+func printConnections() {
+    for t in targets {
+        let state = isConnected(t) ? "✓ 연결됨" : "  연결 안 됨"
+        let inst = targetInstalled(t) ? "" : " (설치 안 됨)"
+        print("\(state)  \(t.name.padding(toLength: 20, withPad: " ", startingAt: 0)) cli-pet connect \(t.id)\(inst)")
+    }
 }
 
 func loginItemOn() -> Bool { FileManager.default.fileExists(atPath: agentURL.path) }
@@ -1570,9 +1760,15 @@ func setLoginItem(_ on: Bool) throws {
 
 func runSetup(_ on: Bool, hooks: Bool = true) -> Int32 {
     do {
-        if hooks || !on {
+        if !on {
+            for t in targets where t.id != "cursor" && isConnected(t) {
+                try setConnected(t, false)
+                print("✓ \(t.name) 연결 해제")
+            }
+        } else if hooks {
             try setHooks(on)
-            print(on ? "✓ Claude Code 연결 (새로 여는 Claude Code 세션부터 적용)" : "✓ Claude Code 연결 해제")
+            print("✓ Claude Code 연결 (새로 여는 Claude Code 세션부터 적용)")
+            print("  다른 AI 도구도 연결하려면: cli-pet connections")
         } else {
             print("· Claude Code 설정 파일은 건드리지 않음")
         }
@@ -1850,6 +2046,10 @@ let usage = """
   cli-pet lines      상황별 대사 파일 만들기·위치 보기
   cli-pet pack new <id> [그림 폴더]   커스텀 팩 만들기
   cli-pet pack check <id|폴더>       커스텀 팩 검사
+  cli-pet connections                AI 도구 연결 상태 보기
+  cli-pet connect <도구|all>         AI 도구 연결 (claude, codex, copilot, gemini, cursor)
+  cli-pet disconnect <도구|all>      연결 해제
+  cli-pet status <상태> [글]         다른 도구에서 펫 상태 바꾸기
   cli-pet install    Claude Code 연결 + 로그인 시 자동 실행 (--no-hooks: 연결은 빼고)
   cli-pet uninstall  위 설정 되돌리기
 """
@@ -1857,7 +2057,21 @@ let usage = """
 var args = Array(CommandLine.arguments.dropFirst())
 switch args.first {
 case "hook":
-    runHook()
+    runHook(Array(args.dropFirst()))
+case "status":
+    // 다른 도구에서 펫 상태 바꾸기: cli-pet status <idle|think|working|done|alert> [글]
+    let states = ["idle", "think", "working", "done", "alert", "say"]
+    guard let st = args.dropFirst().first, states.contains(st) else {
+        print("사용법: cli-pet status <" + states.joined(separator: "|") + "> [글]"); exit(1)
+    }
+    let text = args.dropFirst(2).joined(separator: " ")
+    if text.isEmpty && st == "done" { writeLine("done", "done") } else { writeStatus(st, text) }
+case "connect":
+    exit(runConnect(Array(args.dropFirst()), true))
+case "disconnect":
+    exit(runConnect(Array(args.dropFirst()), false))
+case "connections":
+    printConnections()
 case "start":
     // 앱 번들을 open 으로 띄워 터미널을 닫아도 펫이 남게 한다
     let app = URL(fileURLWithPath: exePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

@@ -3,7 +3,7 @@
 터미널 위에 떠 있는 작은 데스크톱 펫 (macOS).
 
 클릭하면 폴짝 뛰고, 드래그하면 대롱대롱 매달리고, 가만히 두면 잠들어요.
-Claude Code를 연결하면 지금 무슨 일을 하는지 말풍선으로 알려줘요. 생각 중, 파일 읽기·수정, 명령 실행, 권한 요청, 완료.
+Claude Code, Codex, Copilot CLI, Gemini CLI, Cursor를 연결하면 지금 무슨 일을 하는지 말풍선으로 알려줘요. 생각 중, 파일 읽기·수정, 명령 실행, 권한 요청, 완료.
 
 ![자체 캐릭터들](docs/previews/group0-creatures.png)
 
@@ -51,6 +51,15 @@ cd cli-pet
 
 > ZIP으로 받았다면, 처음 한 번은 `install.command`를 **오른쪽 클릭 → 열기**로 실행해야 해요 (서명되지 않은 스크립트라서).
 
+### 다른 AI 도구 연결 (Codex, Copilot, Gemini, Cursor)
+
+```bash
+cli-pet connections        # 연결 상태 보기
+cli-pet connect codex      # claude · codex · copilot · gemini · cursor · all
+```
+
+펫 메뉴의 **AI 도구 연결**에서도 켜고 끌 수 있어요. Claude Code를 연결하면 VS Code·JetBrains 확장, 데스크톱 앱, Cursor에서도 같이 동작해요. 도구별 확인 상태와 Aider·Neovim·OpenCode 연결 예시는 [docs/integrations.md](docs/integrations.md)를 보세요.
+
 ### Claude Code 플러그인
 
 앱을 설치한 뒤 Claude Code에서:
@@ -75,7 +84,7 @@ cd cli-pet
 | 빠르게 5번 클릭 | 어지러워해요 |
 | 드래그 | 대롱대롱, 놓으면 착지 |
 | 90초 동안 가만히 | 잠들어요 |
-| 오른쪽 클릭 | 메뉴: 펫 바꾸기, 대사 바꾸기, 크기, 숨기기, 구석으로 보내기, Claude Code 연결, 로그인 시 자동 실행, 종료 |
+| 오른쪽 클릭 | 메뉴: 펫 바꾸기, 대사 바꾸기, 크기, 숨기기, 구석으로 보내기, AI 도구 연결, 로그인 시 자동 실행, 종료 |
 
 터미널에서도 부를 수 있어요 (Homebrew로 설치했다면 `cli-pet`, 아니면 `~/Applications/CLIPet.app/Contents/MacOS/cli-pet`):
 
@@ -130,6 +139,7 @@ cli-pet pack check anime-myseries-mychar                      # 검사
 
 ## 문서
 
+- [docs/integrations.md](docs/integrations.md) — AI 도구·IDE 연결
 - [docs/lines.md](docs/lines.md) — 상황별 대사 바꾸기
 - [docs/custom-packs.md](docs/custom-packs.md) — 커스텀 팩 만들기
 - [docs/pack-format.md](docs/pack-format.md) — 팩 형식, 분류와 이름 짓는 규칙
