@@ -604,7 +604,20 @@ final class PetView: NSView {
     }
 
     override func rightMouseDown(with e: NSEvent) {
+        NSMenu.popUpContextMenu(buildMenu(forStatusBar: false), with: e, for: self)
+    }
+
+    var petVisible: Bool { window?.isVisible ?? false }
+
+    // 펫 오른쪽 클릭 메뉴와 메뉴 막대 아이콘 메뉴가 같이 쓴다
+    func buildMenu(forStatusBar: Bool) -> NSMenu {
         let menu = NSMenu()
+        if forStatusBar {
+            let toggle = NSMenuItem(title: petVisible ? "펫 숨기기" : "펫 보이기", action: #selector(toggleVisible), keyEquivalent: "")
+            toggle.target = self
+            menu.addItem(toggle)
+            menu.addItem(.separator())
+        }
         let reset = NSMenuItem(title: "구석으로 보내기", action: #selector(resetPosition), keyEquivalent: "")
         reset.target = self
         menu.addItem(reset)
@@ -614,12 +627,15 @@ final class PetView: NSView {
         menu.addItem(lines)
         menu.addItem(sizeMenuItem())
         menu.addItem(.separator())
-        for (title, sel) in [("숨기기", #selector(hidePet)), ("30분 동안 숨기기", #selector(hidePet30))] {
-            let item = NSMenuItem(title: title, action: sel, keyEquivalent: "")
-            item.target = self
-            menu.addItem(item)
+        if !forStatusBar || petVisible {
+            for (title, sel) in [("숨기기", #selector(hidePet)), ("30분 동안 숨기기", #selector(hidePet30))] {
+                let item = NSMenuItem(title: title, action: sel, keyEquivalent: "")
+                item.target = self
+                menu.addItem(item)
+            }
         }
-        let hint = NSMenuItem(title: "다시 부르기: CLIPet 다시 열기 또는 cli-pet show", action: nil, keyEquivalent: "")
+        let hint = NSMenuItem(title: statusBarOn() ? "다시 부르기: 메뉴 막대의 🌱 아이콘" : "다시 부르기: CLIPet 다시 열기 또는 cli-pet show",
+                              action: nil, keyEquivalent: "")
         hint.isEnabled = false
         menu.addItem(hint)
         if let pack, let credit = pack.info.credit {
@@ -637,9 +653,24 @@ final class PetView: NSView {
         login.target = self
         login.state = loginItemOn() ? .on : .off
         menu.addItem(login)
+        let bar = NSMenuItem(title: "메뉴 막대에 아이콘 보이기", action: #selector(toggleStatusBar), keyEquivalent: "")
+        bar.target = self
+        bar.state = statusBarOn() ? .on : .off
+        menu.addItem(bar)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: ""))
-        NSMenu.popUpContextMenu(menu, with: e, for: self)
+        return menu
+    }
+
+    @objc func toggleVisible() {
+        if petVisible { hide(for: nil) } else { show() }
+    }
+
+    @objc func toggleStatusBar() {
+        let on = !statusBarOn()
+        saveSetting("statusBar", on)
+        (NSApp.delegate as? AppDelegate)?.updateStatusItem()
+        if !on { say("아이콘은 숨겼어. 다시 켜려면 여기서!", 3) }
     }
 
     // 펫 바꾸기 ▸ 기본 팩 / 커스텀 팩 ▸ 분류 ▸ (시리즈 ▸) 펫
@@ -1671,10 +1702,70 @@ func savedOrigin(size: NSSize) -> NSPoint? {
     return NSScreen.screens.contains { $0.frame.contains(center) } ? o : nil
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+func statusBarOn() -> Bool { loadSettings()["statusBar"] as? Bool ?? true }
+
+// 메뉴 막대 아이콘: 새싹 모양 (템플릿 이미지라 다크 모드에서도 색이 맞춰진다)
+func sproutIcon() -> NSImage {
+    let img = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { _ in
+        let body = NSBezierPath()
+        body.move(to: NSPoint(x: 2.5, y: 5))
+        body.curve(to: NSPoint(x: 9, y: 12.5), controlPoint1: NSPoint(x: 2.5, y: 10.5), controlPoint2: NSPoint(x: 5.5, y: 12.5))
+        body.curve(to: NSPoint(x: 15.5, y: 5), controlPoint1: NSPoint(x: 12.5, y: 12.5), controlPoint2: NSPoint(x: 15.5, y: 10.5))
+        body.curve(to: NSPoint(x: 9, y: 1.5), controlPoint1: NSPoint(x: 15.5, y: 2), controlPoint2: NSPoint(x: 12, y: 1.5))
+        body.curve(to: NSPoint(x: 2.5, y: 5), controlPoint1: NSPoint(x: 6, y: 1.5), controlPoint2: NSPoint(x: 2.5, y: 2))
+        body.lineWidth = 1.6
+        NSColor.black.setStroke()
+        body.stroke()
+        NSColor.black.setFill()
+        NSBezierPath(ovalIn: NSRect(x: 6, y: 6, width: 1.8, height: 2.4)).fill()
+        NSBezierPath(ovalIn: NSRect(x: 10.2, y: 6, width: 1.8, height: 2.4)).fill()
+        let stem = NSBezierPath()
+        stem.move(to: NSPoint(x: 9, y: 12.5))
+        stem.curve(to: NSPoint(x: 10, y: 15.5), controlPoint1: NSPoint(x: 9, y: 14), controlPoint2: NSPoint(x: 9.5, y: 15))
+        stem.lineWidth = 1.4
+        stem.stroke()
+        let leaf = NSBezierPath()
+        leaf.move(to: NSPoint(x: 10, y: 15.5))
+        leaf.curve(to: NSPoint(x: 15.5, y: 16.5), controlPoint1: NSPoint(x: 11.5, y: 17.5), controlPoint2: NSPoint(x: 14, y: 17.5))
+        leaf.curve(to: NSPoint(x: 10, y: 15.5), controlPoint1: NSPoint(x: 14, y: 14.5), controlPoint2: NSPoint(x: 11.5, y: 14.5))
+        leaf.fill()
+        return true
+    }
+    img.isTemplate = true
+    img.accessibilityDescription = "CLIPet"
+    return img
+}
+
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var panel: NSPanel!
     var view: PetView!
     var lastMtime: Date?
+    var statusItem: NSStatusItem?
+
+    func updateStatusItem() {
+        if statusBarOn() {
+            guard statusItem == nil else { return }
+            let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+            item.button?.image = sproutIcon()
+            item.button?.toolTip = "CLIPet"
+            let menu = NSMenu()
+            menu.delegate = self  // 열 때마다 새로 채운다
+            item.menu = menu
+            statusItem = item
+        } else if let item = statusItem {
+            NSStatusBar.system.removeStatusItem(item)
+            statusItem = nil
+        }
+    }
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        let fresh = view.buildMenu(forStatusBar: true)
+        for item in fresh.items {
+            fresh.removeItem(item)
+            menu.addItem(item)
+        }
+    }
 
     func applicationDidFinishLaunching(_ note: Notification) {
         let scale = loadScale()
@@ -1694,6 +1785,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         view.selectPack(loadSelectedPackID(), announce: false)
         panel.contentView = view
         panel.orderFrontRegardless()
+        updateStatusItem()
 
         lastMtime = mtime()
         view.sayLine("hello", for: 3)
@@ -1723,6 +1815,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         switch cmd {
         case "show": view.show()
         case "hide": view.hide(for: nil)
+        case "statusbar": updateStatusItem()
         case _ where cmd.hasPrefix("size:"):
             if let v = Double(cmd.dropFirst(5)) { view.applyScale(CGFloat(v), save: true) }
         default: break
@@ -1749,6 +1842,7 @@ let usage = """
   cli-pet            펫 띄우기 (이 터미널에 붙어서 실행)
   cli-pet start      펫 띄우기 (터미널과 분리)
   cli-pet show / hide  펫 보이기 / 숨기기
+  cli-pet menubar on|off  메뉴 막대 아이콘 켜기 / 끄기
   cli-pet size <작게|보통|크게|아주크게|배율>  펫 크기
   cli-pet say <글>   펫이 말하게 하기
   cli-pet hook       Claude Code 훅용 (stdin JSON)
@@ -1791,6 +1885,11 @@ case "show":
     }
 case "hide":
     postCommand("hide")
+case "menubar":
+    guard let v = args.dropFirst().first, v == "on" || v == "off" else { print("사용법: cli-pet menubar on|off"); exit(1) }
+    saveSetting("statusBar", v == "on")
+    if petIsRunning() { postCommand("statusbar") }
+    print(v == "on" ? "메뉴 막대 아이콘을 켰어요" : "메뉴 막대 아이콘을 껐어요")
 case "size":
     let arg = args.count > 1 ? args[1] : ""
     let named = sizeChoices.first { $0.label.replacingOccurrences(of: " ", with: "") == arg.replacingOccurrences(of: " ", with: "") }?.scale
