@@ -17,9 +17,9 @@ cli-pet disconnect codex      # 연결 해제
 | **Claude Code** (터미널) | `cli-pet connect claude` | `~/.claude/settings.json` | ✅ 직접 확인 |
 | Claude Code VS Code·JetBrains 확장, 데스크톱 앱 | Claude Code를 연결하면 같이 적용 | 같은 파일 | 📄 공식 문서 기준 ("어디서 실행해도 같은 훅") |
 | **Cursor** (IDE 에이전트) | Claude Code를 연결하면 같이 적용 | Cursor가 `~/.claude/settings.json` 훅을 기본으로 가져옴 | 📄 문서 기준 |
-| **OpenAI Codex** (CLI, IDE 확장, 앱) | `cli-pet connect codex` 후 Codex에서 `/hooks`로 한 번 **신뢰** | `~/.codex/hooks.json` | 📄 문서 기준 |
+| **OpenAI Codex** (CLI, IDE 확장, 앱) | `cli-pet connect codex` 후 Codex에서 `/hooks`로 한 번 **신뢰** | `~/.codex/hooks.json` | ✅ CLI 0.157.1에서 확인 (세션 시작 → 생각 중 → 명령 실행 → 완료) |
 | **GitHub Copilot CLI** | `cli-pet connect copilot` | `~/.copilot/hooks/cli-pet.json` (전용 파일) | 📄 문서 기준 |
-| **Gemini CLI** | `cli-pet connect gemini` (훅이 꺼져 있으면 `/hooks enable-all`) | `~/.gemini/settings.json` | 📄 문서 기준 |
+| **Gemini CLI** | `cli-pet connect gemini` (훅이 꺼져 있으면 `/hooks enable-all`) | `~/.gemini/settings.json` | 📄 문서 기준. 개인 계정은 Google이 Gemini CLI 지원을 끝내서 확인하지 못했어요 (기업 계정용) |
 
 - ✅ 직접 확인: 실제로 연결해서 펫이 반응하는 것까지 봤어요.
 - 📄 문서 기준: 공식 문서에 있는 훅 형식과 예시 데이터로 CLIPet이 올바르게 읽는 것까지 확인했어요. 그 도구를 실제로 돌려서 확인하지는 않았어요. 안 되면 [이슈](https://github.com/APapeIsName/cli-pet/issues)로 알려 주세요.
@@ -74,6 +74,17 @@ export const CliPet = async ({ $ }) => ({
 | Xcode의 Claude·Codex 에이전트 | 훅 지원이 공식 문서에 없어요. 실험이 필요해요 |
 | JetBrains Junie | CLI에서만 훅이 돌고, IDE 안에서는 아직 안 돌아요 |
 | Zed·Warp 자체 에이전트, Jules, Visual Studio | 훅이 없거나, 클라우드 전용이거나, Windows 전용이에요 |
+
+## 안 될 때
+
+```bash
+cli-pet debug on     # 훅으로 받은 입력을 ~/.cli-pet/hooks.log 에 남기기
+# … 도구에서 한 번 써 보기 …
+cli-pet debug log    # 기록 보기
+cli-pet debug off
+```
+
+기록이 비어 있으면 그 도구가 훅을 실행하지 않은 거예요 (연결, 신뢰, 도구 버전 확인). 기록은 있는데 펫이 반응하지 않으면 [이슈](https://github.com/APapeIsName/cli-pet/issues)에 기록 한 줄을 붙여 알려 주세요.
 
 ## 직접 연결하기 (고급)
 

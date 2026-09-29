@@ -166,6 +166,9 @@ func writeLine(_ state: String, _ key: String, _ vars: [String: String] = [:]) {
     writeStatus(state, Lines.shared.resolve(key, vars) ?? "", key: key, vars: vars)
 }
 
+let debugFlagURL = stateDir.appendingPathComponent("debug")
+let hookLogURL = stateDir.appendingPathComponent("hooks.log")
+
 // 이벤트 이름을 소문자·글자만으로 맞춘 뒤 펫의 상황으로 바꾼다
 let thinkEvents: Set<String> = ["userpromptsubmit", "userpromptsubmitted", "beforesubmitprompt", "beforeagent", "promptsubmit", "preinvocation"]
 let toolEvents: Set<String> = ["pretooluse", "beforetool"]
@@ -188,6 +191,15 @@ func runHook(_ options: [String]) {
     // Gemini·Cursor는 표준 출력이 JSON이어야 해서 빈 객체를 돌려준다
     defer { if jsonOut { print("{}") } }
     let data = FileHandle.standardInput.readDataToEndOfFile()
+    // 문제 찾기용: CLI_PET_HOOK_LOG=<파일> 이거나 cli-pet debug on 이면 받은 입력을 그대로 한 줄씩 남긴다
+    let debugLog = FileManager.default.fileExists(atPath: debugFlagURL.path) ? hookLogURL.path : nil
+    if let log = env["CLI_PET_HOOK_LOG"] ?? debugLog, let h = FileHandle(forWritingAtPath: log) ?? {
+        FileManager.default.createFile(atPath: log, contents: nil); return FileHandle(forWritingAtPath: log) }() {
+        h.seekToEndOfFile()
+        let line = "\(Date().timeIntervalSince1970) \(options.joined(separator: " ")) " + (String(data: data, encoding: .utf8) ?? "").replacingOccurrences(of: "\n", with: " ") + "\n"
+        h.write(line.data(using: .utf8)!)
+        h.closeFile()
+    }
     let obj = ((try? JSONSerialization.jsonObject(with: data)) as? [String: Any]) ?? [:]
     let rawEvent = forcedEvent ?? (obj["hook_event_name"] as? String) ?? (obj["hookEventName"] as? String) ?? ""
     let event = rawEvent.lowercased().filter(\.isLetter)
@@ -1668,12 +1680,12 @@ func isConnected(_ t: Target) -> Bool {
     }
 }
 
-// 바꾸기 전 원본을 <파일>.cli-pet-backup 으로 남긴다
+// CLIPet이 처음 건드리기 전 원본을 <파일>.cli-pet-backup 으로 한 번만 남긴다
+// (해제할 때나 다시 연결할 때 덮어쓰면 원본이 사라진다)
 func writeWithBackup(_ url: URL, _ text: String) throws {
     let fm = FileManager.default
-    if fm.fileExists(atPath: url.path) {
-        let backup = url.appendingPathExtension("cli-pet-backup")
-        try? fm.removeItem(at: backup)
+    let backup = url.appendingPathExtension("cli-pet-backup")
+    if fm.fileExists(atPath: url.path) && !fm.fileExists(atPath: backup.path) {
         try fm.copyItem(at: url, to: backup)
     }
     try fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -2050,6 +2062,7 @@ let usage = """
   cli-pet connect <도구|all>         AI 도구 연결 (claude, codex, copilot, gemini, cursor)
   cli-pet disconnect <도구|all>      연결 해제
   cli-pet status <상태> [글]         다른 도구에서 펫 상태 바꾸기
+  cli-pet debug on|off|log           훅으로 받은 입력 기록 (문제 찾기용)
   cli-pet install    Claude Code 연결 + 로그인 시 자동 실행 (--no-hooks: 연결은 빼고)
   cli-pet uninstall  위 설정 되돌리기
 """
@@ -2072,6 +2085,22 @@ case "disconnect":
     exit(runConnect(Array(args.dropFirst()), false))
 case "connections":
     printConnections()
+case "debug":
+    // cli-pet debug on|off|log : 훅으로 받은 입력을 ~/.cli-pet/hooks.log 에 남긴다 (GUI 앱에서 온 훅 확인용)
+    switch args.dropFirst().first {
+    case "on":
+        try? FileManager.default.createDirectory(at: stateDir, withIntermediateDirectories: true)
+        FileManager.default.createFile(atPath: debugFlagURL.path, contents: nil)
+        print("훅 기록을 켰어요: \(hookLogURL.path)")
+    case "off":
+        try? FileManager.default.removeItem(at: debugFlagURL)
+        print("훅 기록을 껐어요 (기록 파일은 남아 있어요: \(hookLogURL.path))")
+    case "log":
+        print((try? String(contentsOf: hookLogURL, encoding: .utf8)) ?? "(기록 없음)")
+    default:
+        print("사용법: cli-pet debug on|off|log")
+        exit(1)
+    }
 case "start":
     // 앱 번들을 open 으로 띄워 터미널을 닫아도 펫이 남게 한다
     let app = URL(fileURLWithPath: exePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
