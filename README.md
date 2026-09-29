@@ -119,6 +119,24 @@ cli-pet pack check anime-myseries-mychar                      # 검사
 - [docs/packs.csv](docs/packs.csv) — 전체 캐릭터 목록 (엑셀·구글 시트용)
 - [docs/inquiry.md](docs/inquiry.md) — 권리자 문의 가이드
 
+## 크레딧
+
+캐릭터 그림마다 권리자, 라이선스, 출처를 **[CREDITS.md](CREDITS.md)** 에 정리해 뒀어요. 앱에서는 펫 오른쪽 클릭 → 펫 바꾸기 → **크레딧 보기…** 로 볼 수 있고, 지금 고른 팩의 표기는 메뉴의 "그림:" 줄에 나와요.
+
+| 캐릭터 | 권리자 | 라이선스 |
+|---|---|---|
+| 새싹, 자체 동물 10종 | CLIPet (이 저장소) | MIT |
+| Fluent Emoji 동물 8종 | Microsoft | MIT |
+| oneko 고양이 | Masayuki Koba, Tatsuya Kato | 퍼블릭 도메인 |
+| Ferris | Karen Rustad Tölva | CC0 |
+| Go Gopher | Renée French | CC BY 4.0 |
+| Tux | Larry Ewing, The GIMP (SVG: Garrett LeSage) | CC0 |
+| Duke | Sun Microsystems / Oracle | BSD-3-Clause |
+| Kodee | JetBrains s.r.o. | CC BY 4.0 |
+| Android 로봇 | Google | CC BY 3.0 |
+| Zig 마스코트 3종 | Zig 프로젝트 | CC BY 4.0 |
+| Phippy와 친구들 12종 | The Linux Foundation (CNCF), phippy.io | CC BY 4.0 |
+
 ## 라이선스
 
 앱 코드, 스크립트, 플러그인, 문서는 [MIT 라이선스](LICENSE)예요.

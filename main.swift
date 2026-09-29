@@ -564,9 +564,17 @@ final class PetView: NSView {
         let help = NSMenuItem(title: "커스텀 팩 만드는 법…", action: #selector(openPackHelp), keyEquivalent: "")
         help.target = self
         root.addItem(help)
+        root.addItem(.separator())
+        let credits = NSMenuItem(title: "크레딧 보기…", action: #selector(openCredits), keyEquivalent: "")
+        credits.target = self
+        root.addItem(credits)
         let item = NSMenuItem(title: "펫 바꾸기", action: nil, keyEquivalent: "")
         item.submenu = root
         return item
+    }
+
+    @objc func openCredits() {
+        NSWorkspace.shared.open(URL(string: "https://github.com/APapeIsName/cli-pet/blob/main/CREDITS.md")!)
     }
 
     @objc func openPackHelp() {
