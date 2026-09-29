@@ -75,12 +75,14 @@ cd cli-pet
 | 빠르게 5번 클릭 | 어지러워해요 |
 | 드래그 | 대롱대롱, 놓으면 착지 |
 | 90초 동안 가만히 | 잠들어요 |
-| 오른쪽 클릭 | 메뉴: 펫 바꾸기, 대사 바꾸기, 구석으로 보내기, Claude Code 연결, 로그인 시 자동 실행, 종료 |
+| 오른쪽 클릭 | 메뉴: 펫 바꾸기, 대사 바꾸기, 크기, 숨기기, 구석으로 보내기, Claude Code 연결, 로그인 시 자동 실행, 종료 |
 
 터미널에서도 부를 수 있어요 (Homebrew로 설치했다면 `cli-pet`, 아니면 `~/Applications/CLIPet.app/Contents/MacOS/cli-pet`):
 
 ```bash
 cli-pet start                 # 펫 띄우기
+cli-pet show / cli-pet hide   # 펫 보이기 / 숨기기
+cli-pet size 크게             # 작게 · 보통 · 크게 · 아주크게, 또는 0.5~2.5 배율
 cli-pet say "안녕"            # 펫이 말하게 하기
 npm test | cli-pet pipe       # 명령 출력을 펫이 말풍선으로 보여주기 (출력은 그대로 터미널에도 나옴)
 ```
@@ -96,6 +98,11 @@ npm test | cli-pet pipe       # 명령 출력을 펫이 말풍선으로 보여�
 | 개발 | Ferris (Rust), Go Gopher, Tux (Linux), Duke (Java), Kodee (Kotlin), Android 로봇, Zig 마스코트 3종, Phippy와 친구들 (CNCF) 12종 |
 
 자체 캐릭터와 동물은 코드로 그려서 모든 표정이 있어요. 다른 팩은 권리자가 공식으로 배포한 그림을 그대로 쓰기 때문에, 그림이 없는 표정은 비슷한 표정으로 대신해요.
+
+### 크기와 숨기기
+
+- 오른쪽 클릭 → **크기**에서 작게·보통·크게·아주 크게를 고를 수 있어요. 말풍선도 같이 커져요.
+- **숨기기** 또는 **30분 동안 숨기기**로 잠깐 치워 둘 수 있어요. 다시 부르려면 CLIPet을 다시 열거나(Finder, Spotlight) `cli-pet show` 를 치세요.
 
 ### 대사 바꾸기
 

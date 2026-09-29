@@ -303,15 +303,42 @@ func findPacks() -> [Pack] {
     return packs.sorted { ($0.isUser ? 9 : $0.info.group ?? 9, $0.info.name) < ($1.isUser ? 9 : $1.info.group ?? 9, $1.info.name) }
 }
 
-func loadSelectedPackID() -> String {
+// ~/.cli-pet/settings.json: 고른 펫, 크기
+func loadSettings() -> [String: Any] {
     guard let data = try? Data(contentsOf: settingsURL),
-          let obj = try? JSONDecoder().decode([String: String].self, from: data) else { return defaultPetID }
-    return obj["pack"] ?? defaultPetID
+          let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return [:] }
+    return obj
 }
 
-func saveSelectedPackID(_ id: String) {
+func saveSetting(_ key: String, _ value: Any) {
+    var d = loadSettings()
+    d[key] = value
     try? FileManager.default.createDirectory(at: stateDir, withIntermediateDirectories: true)
-    try? JSONEncoder().encode(["pack": id]).write(to: settingsURL, options: .atomic)
+    if let data = try? JSONSerialization.data(withJSONObject: d, options: [.prettyPrinted, .sortedKeys]) {
+        try? data.write(to: settingsURL, options: .atomic)
+    }
+}
+
+func loadSelectedPackID() -> String { loadSettings()["pack"] as? String ?? defaultPetID }
+func saveSelectedPackID(_ id: String) { saveSetting("pack", id) }
+
+// 펫 크기. 창과 그림을 같은 배율로 키운다
+let baseSize = NSSize(width: 240, height: 230)
+let sizeChoices: [(label: String, scale: CGFloat)] = [("작게", 0.75), ("보통", 1.0), ("크게", 1.3), ("아주 크게", 1.6)]
+func loadScale() -> CGFloat { min(2.5, max(0.5, CGFloat(loadSettings()["scale"] as? Double ?? 1))) }
+
+// 이미 떠 있는 펫에게 명령 보내기 (보이기, 숨기기, 크기)
+let commandNote = Notification.Name("local.cli-pet.command")
+func postCommand(_ cmd: String) {
+    DistributedNotificationCenter.default().postNotificationName(commandNote, object: cmd, userInfo: nil, deliverImmediately: true)
+    usleep(150_000)
+}
+
+func petIsRunning() -> Bool {
+    let fd = open(stateDir.appendingPathComponent("pet.lock").path, O_CREAT | O_RDWR, 0o644)
+    defer { close(fd) }
+    if flock(fd, LOCK_EX | LOCK_NB) == 0 { flock(fd, LOCK_UN); return false }
+    return true
 }
 
 // MARK: - 코드로 그리는 0군 캐릭터
@@ -419,6 +446,10 @@ final class PetView: NSView {
     var pack: Pack?  // nil이면 코드로 그리는 캐릭터
     var creature = creatures[0]
     var dragging = false
+    var scale: CGFloat = 1
+    var hideTimer: Timer?
+    // 배율을 뺀 논리 좌표의 크기 (그리기는 이 크기 기준)
+    var lb: NSRect { NSRect(x: 0, y: 0, width: bounds.width / scale, height: bounds.height / scale) }
 
     var mood = "idle"
     var bubbleText: String?
@@ -453,7 +484,7 @@ final class PetView: NSView {
             h = pack.info.size ?? 80
             w = CGFloat(img.width) * packScale
         }
-        return NSRect(x: bounds.midX - w / 2, y: 16, width: w, height: h)
+        return NSRect(x: lb.midX - w / 2, y: 16, width: w, height: h)
     }
 
     func selectPack(_ id: String, announce: Bool) {
@@ -563,7 +594,8 @@ final class PetView: NSView {
             savePosition()
             return
         }
-        let p = convert(e.locationInWindow, from: nil)
+        let raw = convert(e.locationInWindow, from: nil)
+        let p = NSPoint(x: raw.x / scale, y: raw.y / scale)
         if bubbleText != nil && bubbleRect.contains(p) {
             bubbleText = nil
         } else {
@@ -580,6 +612,16 @@ final class PetView: NSView {
         let lines = NSMenuItem(title: "대사 바꾸기…", action: #selector(editLines), keyEquivalent: "")
         lines.target = self
         menu.addItem(lines)
+        menu.addItem(sizeMenuItem())
+        menu.addItem(.separator())
+        for (title, sel) in [("숨기기", #selector(hidePet)), ("30분 동안 숨기기", #selector(hidePet30))] {
+            let item = NSMenuItem(title: title, action: sel, keyEquivalent: "")
+            item.target = self
+            menu.addItem(item)
+        }
+        let hint = NSMenuItem(title: "다시 부르기: CLIPet 다시 열기 또는 cli-pet show", action: nil, keyEquivalent: "")
+        hint.isEnabled = false
+        menu.addItem(hint)
         if let pack, let credit = pack.info.credit {
             let line = [credit, pack.info.license].compactMap { $0 }.joined(separator: " · ")
             let info = NSMenuItem(title: "그림: " + line, action: nil, keyEquivalent: "")
@@ -673,6 +715,61 @@ final class PetView: NSView {
         return item
     }
 
+    func sizeMenuItem() -> NSMenuItem {
+        let sub = NSMenu()
+        for (label, s) in sizeChoices {
+            let item = NSMenuItem(title: label, action: #selector(pickSize(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = s
+            item.state = abs(s - scale) < 0.01 ? .on : .off
+            sub.addItem(item)
+        }
+        let item = NSMenuItem(title: "크기", action: nil, keyEquivalent: "")
+        item.submenu = sub
+        return item
+    }
+
+    @objc func pickSize(_ sender: NSMenuItem) {
+        applyScale(sender.representedObject as? CGFloat ?? 1, save: true)
+    }
+
+    // 바닥 가운데를 기준으로 창 크기를 바꾼다
+    func applyScale(_ s: CGFloat, save: Bool) {
+        let s = min(2.5, max(0.5, s))
+        scale = s
+        if let w = window {
+            let old = w.frame
+            let size = NSSize(width: baseSize.width * s, height: baseSize.height * s)
+            w.setFrame(NSRect(x: old.midX - size.width / 2, y: old.minY, width: size.width, height: size.height), display: true)
+        }
+        needsDisplay = true
+        if save { saveSetting("scale", Double(s)); savePosition() }
+    }
+
+    @objc func hidePet() { hide(for: nil) }
+    @objc func hidePet30() { hide(for: 30 * 60) }
+
+    func hide(for seconds: Double?) {
+        hideTimer?.invalidate()
+        hideTimer = nil
+        window?.orderOut(nil)
+        if let seconds {
+            let timer = Timer(timeInterval: seconds, repeats: false) { [weak self] _ in
+                MainActor.assumeIsolated { self?.show() }
+            }
+            RunLoop.main.add(timer, forMode: .common)
+            hideTimer = timer
+        }
+    }
+
+    func show() {
+        hideTimer?.invalidate()
+        hideTimer = nil
+        let wasHidden = window?.isVisible == false
+        window?.orderFrontRegardless()
+        if wasHidden { jumpAt = t; sayLine("hello", for: 2) }
+    }
+
     @objc func editLines() {
         let url = ensureLinesFile()
         let p = Process()
@@ -731,6 +828,7 @@ final class PetView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
+        ctx.scaleBy(x: scale, y: scale)
         let base = petRect
         let dizzy = t < dizzyUntil
         let happy = t < happyUntil || mood == "say"
@@ -817,7 +915,7 @@ final class PetView: NSView {
         let s = pack.info.fit == "each" ? (pack.info.size ?? 80) / CGFloat(img.height) : packScale
         var w = CGFloat(img.width) * s, h = CGFloat(img.height) * s
         // 포즈마다 그림 크기가 달라도 창 밖으로 넘치지 않게
-        let fit = min(1, (bounds.width - 16) / w, (pack.info.size ?? 80) * 1.4 / h)
+        let fit = min(1, (lb.width - 16) / w, (pack.info.size ?? 80) * 1.4 / h)
         w *= fit
         h *= fit
         ctx.interpolationQuality = pack.info.pixel == true ? .none : .high
@@ -1290,14 +1388,14 @@ final class PetView: NSView {
             .foregroundColor: NSColor(white: 0.12, alpha: 1),
             .paragraphStyle: para,
         ]
-        let maxTextW = bounds.width - 40
+        let maxTextW = lb.width - 40
         let measured = (text as NSString).boundingRect(
             with: NSSize(width: maxTextW, height: 1000),
             options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: attrs)
         let tw = ceil(measured.width), th = min(ceil(measured.height), 46)
         let bw = tw + 20, bh = th + 12
         let tailH: CGFloat = 7, tailW: CGFloat = 12
-        let rect = CGRect(x: bounds.midX - bw / 2, y: base.maxY + 26 + lift, width: bw, height: bh)
+        let rect = CGRect(x: lb.midX - bw / 2, y: base.maxY + 26 + lift, width: bw, height: bh)
         bubbleRect = rect.insetBy(dx: 0, dy: -tailH)
 
         let p = CGMutablePath()
@@ -1579,7 +1677,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var lastMtime: Date?
 
     func applicationDidFinishLaunching(_ note: Notification) {
-        let size = NSSize(width: 240, height: 230)
+        let scale = loadScale()
+        let size = NSSize(width: baseSize.width * scale, height: baseSize.height * scale)
         let origin = savedOrigin(size: size) ?? defaultOrigin(size: size)
         panel = NSPanel(contentRect: NSRect(origin: origin, size: size),
                         styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
@@ -1590,6 +1689,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.hidesOnDeactivate = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         view = PetView(frame: NSRect(origin: .zero, size: size))
+        view.scale = scale
         view.packs = findPacks()
         view.selectPack(loadSelectedPackID(), announce: false)
         panel.contentView = view
@@ -1606,6 +1706,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         RunLoop.main.add(anim, forMode: .common)
         RunLoop.main.add(watch, forMode: .common)
+
+        DistributedNotificationCenter.default().addObserver(forName: commandNote, object: nil, queue: .main) { [weak self] note in
+            let cmd = note.object as? String ?? ""
+            MainActor.assumeIsolated { self?.handle(cmd) }
+        }
+    }
+
+    // 이미 떠 있는데 앱을 다시 열면 (Finder, open, Spotlight) 숨긴 펫을 보여준다
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        view.show()
+        return false
+    }
+
+    func handle(_ cmd: String) {
+        switch cmd {
+        case "show": view.show()
+        case "hide": view.hide(for: nil)
+        case _ where cmd.hasPrefix("size:"):
+            if let v = Double(cmd.dropFirst(5)) { view.applyScale(CGFloat(v), save: true) }
+        default: break
+        }
     }
 
     func mtime() -> Date? {
@@ -1627,6 +1748,8 @@ let usage = """
 사용법:
   cli-pet            펫 띄우기 (이 터미널에 붙어서 실행)
   cli-pet start      펫 띄우기 (터미널과 분리)
+  cli-pet show / hide  펫 보이기 / 숨기기
+  cli-pet size <작게|보통|크게|아주크게|배율>  펫 크기
   cli-pet say <글>   펫이 말하게 하기
   cli-pet hook       Claude Code 훅용 (stdin JSON)
   명령 | cli-pet pipe 명령 출력을 펫이 보여주기
@@ -1654,6 +1777,31 @@ case "install":
     exit(runSetup(true, hooks: !args.contains("--no-hooks")))
 case "pack":
     exit(runPackCommand(Array(args.dropFirst())))
+case "show":
+    if petIsRunning() {
+        postCommand("show")
+    } else {
+        print("펫이 꺼져 있어서 새로 띄워요. (cli-pet start)")
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        let app = URL(fileURLWithPath: exePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        p.arguments = [app.pathExtension == "app" ? app.path : exePath]
+        try? p.run()
+        p.waitUntilExit()
+    }
+case "hide":
+    postCommand("hide")
+case "size":
+    let arg = args.count > 1 ? args[1] : ""
+    let named = sizeChoices.first { $0.label.replacingOccurrences(of: " ", with: "") == arg.replacingOccurrences(of: " ", with: "") }?.scale
+    guard let v = named ?? Double(arg).map({ CGFloat($0) }) else {
+        print("사용법: cli-pet size <" + sizeChoices.map { $0.label.replacingOccurrences(of: " ", with: "") }.joined(separator: "|") + "|0.5~2.5>")
+        exit(1)
+    }
+    let clamped = min(2.5, max(0.5, v))
+    saveSetting("scale", Double(clamped))
+    if petIsRunning() { postCommand("size:\(clamped)") }
+    print("크기: \(clamped)배")
 case "lines":
     let url = ensureLinesFile()
     print("대사 파일: \(url.path)")
@@ -1671,7 +1819,8 @@ default:
     try? FileManager.default.createDirectory(at: stateDir, withIntermediateDirectories: true)
     let lockFD = open(stateDir.appendingPathComponent("pet.lock").path, O_CREAT | O_RDWR, 0o644)
     if flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
-        print("펫이 이미 떠 있어요.")
+        postCommand("show")
+        print("펫이 이미 떠 있어서 앞으로 불러왔어요.")
         exit(0)
     }
     let app = NSApplication.shared
