@@ -467,6 +467,9 @@ struct Creature {
     var melts = false                                  // 잘 때 녹음 (버터)
     var cat: String? = nil                             // 분류 (없으면 새싹=original, 나머지=animal)
     var lines: [String: [String]] = [:]                // 이 캐릭터만의 대사
+    var eyeColor: RGB? = nil                           // 눈동자 색 (없으면 까만 눈)
+    var earColor: RGB? = nil                           // 귀 색 (없으면 몸 색)
+    var tuftColor: RGB? = nil                          // 앞머리 색 (없으면 몸 아래 색)
     var category: String { cat ?? (series == "sprout" ? "original" : "animal") }
     // 몸 위로 튀어나오는 부분(귀, 새싹) 높이. 말풍선 위치에 쓴다
     var headroom: CGFloat {
@@ -1604,7 +1607,7 @@ final class PetView: NSView {
                 outer.addLine(to: CGPoint(x: s * w * 0.33, y: h * 1.24))
                 outer.addLine(to: CGPoint(x: s * w * 0.44, y: h * 0.72))
                 outer.closeSubpath()
-                fillStroke(ctx, outer, c.top.cg)
+                fillStroke(ctx, outer, (c.earColor ?? c.top).cg)
                 let inner = CGMutablePath()
                 inner.move(to: CGPoint(x: s * w * 0.17, y: h * 0.95))
                 inner.addLine(to: CGPoint(x: s * w * 0.32, y: h * 1.14))
@@ -1614,7 +1617,7 @@ final class PetView: NSView {
                 ctx.setFillColor(c.inner.cg)
                 ctx.fillPath()
             case .round:
-                fillStroke(ctx, ellipse(s * w * 0.32, h * 0.9, 17, 17), c.top.cg)
+                fillStroke(ctx, ellipse(s * w * 0.32, h * 0.9, 17, 17), (c.earColor ?? c.top).cg)
                 ctx.addPath(ellipse(s * w * 0.32, h * 0.92, 9, 9))
                 ctx.setFillColor(c.inner.cg)
                 ctx.fillPath()
@@ -1623,7 +1626,7 @@ final class PetView: NSView {
                 let rot = -s * (droop + c.earSpread)
                 let cx = s * (w * 0.17 + c.earSpread * 16), cy = h * 1.18 - c.earSpread * 6
                 let ear = ellipse(cx, cy, 13, 34, rot: rot)
-                fillStroke(ctx, ear, c.top.cg)
+                fillStroke(ctx, ear, (c.earColor ?? c.top).cg)
                 if let tip = c.earTip {
                     ctx.saveGState()
                     ctx.addPath(ear)
@@ -1776,7 +1779,7 @@ final class PetView: NSView {
         p.move(to: CGPoint(x: -2, y: h - 2))
         p.addQuadCurve(to: CGPoint(x: 3 + sway, y: h + 9), control: CGPoint(x: -4, y: h + 8))
         p.addQuadCurve(to: CGPoint(x: 4, y: h - 2), control: CGPoint(x: 8 + sway, y: h + 3))
-        fillStroke(ctx, p, c.bottom.cg, width: 1.6)
+        fillStroke(ctx, p, (c.tuftColor ?? c.bottom).cg, width: 1.6)
     }
 
     func drawBow(_ ctx: CGContext, _ c: Creature, _ color: CGColor) {
@@ -1839,9 +1842,18 @@ final class PetView: NSView {
                 ctx.strokePath()
             } else {
                 let big = mood == "alert" || dragging
-                let ew: CGFloat = big ? 8 : 6, eh: CGFloat = big ? 11 : 9
+                var ew: CGFloat = big ? 8 : 6, eh: CGFloat = big ? 11 : 9
+                if let iris = c.eyeColor {
+                    // 큰 눈: 까만 테두리 안에 색 눈동자
+                    ew += 2; eh += 3
+                    ctx.setFillColor(ink)
+                    ctx.fillEllipse(in: CGRect(x: ex - ew / 2, y: eyeY - eh / 2, width: ew, height: eh))
+                    ctx.setFillColor(iris.cg)
+                    ctx.fillEllipse(in: CGRect(x: ex - ew / 2 + 1.2, y: eyeY - eh / 2 + 0.8, width: ew - 2.4, height: eh * 0.62))
+                    ctx.setFillColor(ink)
+                }
                 ctx.setFillColor(ink)
-                ctx.fillEllipse(in: CGRect(x: ex - ew / 2, y: eyeY - eh / 2, width: ew, height: eh))
+                if c.eyeColor == nil { ctx.fillEllipse(in: CGRect(x: ex - ew / 2, y: eyeY - eh / 2, width: ew, height: eh)) }
                 ctx.setFillColor(NSColor.white.cgColor)
                 ctx.fillEllipse(in: CGRect(x: ex - ew / 2 + 1, y: eyeY + eh / 2 - 4.5, width: 3, height: 3))
                 ctx.setFillColor(ink)
