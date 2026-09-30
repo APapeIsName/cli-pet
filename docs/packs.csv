@@ -11,12 +11,22 @@
 가능,0,animal-real-hedgehog,animal,real,고슴도치 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,기획,2026-09-29,,,,
 가능,0,animal-real-turtle,animal,real,거북이 (자체),실제 동물,본인,자체 제작,O,O,X,X,,실제 동물은 누구의 IP도 아님. 유명 캐릭터와 닮지 않게 (예: 흰 고양이+빨간 리본은 헬로키티와 혼동),,,,기획,2026-09-29,,,,
 가능,0,original-*,original,,자체 캐릭터 (추가 예정),자체 캐릭터,본인,자체 제작,O,O,X,X,,새 캐릭터를 만들 때마다 한 줄씩 추가,,,,기획,2026-09-29,,,,
+가능,0,toy-squishy-waxball,toy,squishy,왁뿌볼,자체 장난감 캐릭터,본인,자체 제작,O,O,X,X,,일반 제품군. 실물 사용 권유 대사 넣지 않기,docs/toy-candidates.md,,,완료,2026-09-30,,,,코드로 그림: 모든 포즈
+가능,0,toy-clicker-keycap,toy,clicker,키캡 클리커,자체 장난감 캐릭터,본인,자체 제작,O,O,X,X,,키캡은 일반 부품. 캐릭터 콜라보 키캡 모양은 피하기,docs/toy-candidates.md,,,완료,2026-09-30,,,,코드로 그림: 모든 포즈
+가능,0,toy-squishy-slangi,toy,squishy,슬랑이,자체 장난감 캐릭터,본인,자체 제작,O,O,X,X,,일반 제품군,docs/toy-candidates.md,,,후보,2026-09-30,,,,
+가능,0,toy-snack-dumpling,toy,snack,만두 말랑이,자체 장난감 캐릭터,본인,자체 제작,O,O,X,X,,일반 제품군,docs/toy-candidates.md,,,완료,2026-09-30,,,,코드로 그림: 모든 포즈
+가능,0,toy-squishy-stressball,toy,squishy,쫀득 스트레스볼,자체 장난감 캐릭터,본인,자체 제작,O,O,X,X,,NeeDoh·Nice Cube 이름·디자인 피하기,docs/toy-candidates.md,,,완료,2026-09-30,,,,코드로 그림: 모든 포즈
+가능,0,toy-squishy-butter,toy,squishy,버터 말랑이,자체 장난감 캐릭터,본인,자체 제작,O,O,X,X,,일반 제품군,docs/toy-candidates.md,,,완료,2026-09-30,,,,코드로 그림: 모든 포즈
+가능,0,toy-snack-dujjonku,toy,snack,두쫀쿠 말랑이,자체 장난감 캐릭터,본인,자체 제작,O,O,X,X,,음식 유행은 식음,docs/toy-candidates.md,,,후보,2026-09-30,,,,
+가능,0,toy-squishy-cheese,toy,squishy,치즈 말랑이,자체 장난감 캐릭터,본인,자체 제작,O,O,X,X,,일반 제품군,docs/toy-candidates.md,,,후보,2026-09-30,,,,
+가능,0,toy-squishy-fruit,toy,squishy,과일 말랑이 (복숭아·청사과),자체 장난감 캐릭터,본인,자체 제작,O,O,X,X,,일반 제품군,docs/toy-candidates.md,,,후보,2026-09-30,,,,
+가능,0,toy-stationery-sticker,toy,stationery,통통 크리스탈 스티커,자체 장난감 캐릭터,본인,자체 제작,O,O,X,X,,"""봉봉드롭"" 이름 쓰지 않기",docs/toy-candidates.md,,,후보,2026-09-30,,,,
 가능,1,dev-rust-ferris,dev,rust,Ferris (Rust),개발 마스코트,Karen Rustad Tölva,CC0,O,O,X,X,필요 없음,Rust 이름·로고는 상표,https://rustacean.net/,,,완료,2026-09-29,,,,"4개 / 없는 필수: sleep, surprised"
 가능,1,dev-go-gopher,dev,go,Go Gopher,개발 마스코트,Renée French,CC BY 4.0,O,O,X,X,Renee French,Go 로고는 별도 규정,https://go.dev/blog/gopher,,,완료,2026-09-29,,,,7개 / 없는 필수: sleep
 가능,1,dev-linux-tux,dev,linux,Tux (Linux),개발 마스코트,Larry Ewing / SVG: Garrett LeSage,자유 이용 허락 / SVG는 CC0,O,O,X,X,"Larry Ewing, The GIMP",Linux는 상표,https://github.com/garrett/Tux,,,완료,2026-09-29,,,,"1개 / 없는 필수: focus, happy, sleep, surprised"
 가능,1,dev-java-duke,dev,java,Duke (Java),개발 마스코트,Sun → Oracle,BSD-3-Clause,O,O,X,X,BSD 고지문,Java는 Oracle 상표,https://wiki.openjdk.org/display/duke/Main,,,완료,2026-09-29,,,,8개 / 필수 5 충족
 가능,1,dev-zig-ziggy / zero / carmen,dev,zig,Ziggy·Zero (Zig),개발 마스코트,Zig 프로젝트,CC BY 4.0,O,O,X,X,출처 표기,로고는 CC BY-SA라 제외,https://github.com/ziglang/logo,,,완료 (3팩),2026-09-29,,,Zero·Carmen 그림 안에 작은 Zig 로고가 있음 (LICENSE에 기록),"1~1개 / 없는 필수: focus, happy, sleep, surprised"
-가능,1,dev-cncf-phippy (+친구 11종),dev,cncf,Phippy와 친구들 (CNCF),개발 마스코트,CNCF,CC BY 4.0,O,O,X,X,phippy.io,쿠버네티스 로고 닮은 소품 주의,https://www.cncf.io/phippy/,,,완료 (12팩),2026-09-29,,,,"1~1개 / 없는 필수: focus, happy, sleep, surprised"
+가능,1,dev-cncf-phippy (친구 11종은 추가 팩),dev,cncf,Phippy와 친구들 (CNCF),개발 마스코트,CNCF,CC BY 4.0,O,O,X,X,phippy.io,쿠버네티스 로고 닮은 소품 주의,https://www.cncf.io/phippy/,,,"완료 (Phippy 기본, 친구 11종 추가 팩)",2026-09-29,,,,"1~1개 / 없는 필수: focus, happy, sleep, surprised"
 가능,1,dev-kotlin-kodee,dev,kotlin,Kodee (Kotlin),개발 마스코트,JetBrains,CC BY 4.0,O,O,X,X,Kodee by JetBrains s.r.o. is licensed under CC BY 4.0,비하·부적절 사용 금지,https://kotlinfoundation.org/guidelines/,,,완료,2026-09-29,,,,11개 / 없는 필수: sleep
 가능,1,dev-android-robot,dev,android,Android 로봇,개발 마스코트,Google,CC BY 3.0,O,O,X,X,The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License.,'Android' 이름을 팩 브랜드로 쓰지 않기,https://developer.android.com/distribute/marketing-tools/brand-guidelines,,,완료,2026-09-29,,,공식 배포 그림이 머리뿐이라 포즈 1개,"1개 / 없는 필수: focus, happy, sleep, surprised"
 가능,1,dev-deno,dev,deno,Deno 공룡,개발 마스코트,Ryan Dahl 외,MIT (작품별),O,O,X,X,MIT 고지문,restricted 표시 작품 제외,https://deno.com/artwork,,,보류,2026-09-29,,,'The Original'은 사실상 Deno 로고의 원형이라 공식처럼 보일 위험. 보류,

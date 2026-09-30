@@ -4,6 +4,7 @@
 
 - `packs/<id>/` — 앱에 기본으로 들어가는 팩 (0군, 1군, 2군)
 - `packs-nc/<id>/` — 비상업 조건 팩 (3군). 따로 떼어낼 수 있게 폴더를 나눈다
+- `extra-packs/<id>/` — **추가 팩**. 앱에 넣지 않고, 사용자가 메뉴나 `cli-pet pack get`으로 받아 `~/.cli-pet/packs/`에 저장한다. pack.json에 `"extra": true`. 목록은 `tools/gen_extra_index.py`로 만든다
 - `~/.cli-pet/packs/<id>/` — **커스텀 팩**. 사용자가 직접 넣는 팩 (앱에 포함하지 않음). 만드는 법은 [custom-packs.md](custom-packs.md)
 
 ```
@@ -24,6 +25,7 @@ packs/gopher/
 | category | 메뉴 이름 | 들어가는 것 | id 예 |
 |---|---|---|---|
 | `original` | 자체 캐릭터 | 0군 자체 캐릭터 | `original-sprout-sprout` → 줄여서 `original-sprout` |
+| `toy` | 장난감 | 0군 장난감 캐릭터 (말랑이, 딸깍이, 간식 말랑이) | `toy-squishy-waxball`, `toy-clicker-keycap` |
 | `animal` | 동물 | 실제 동물. 자체(`real`), 이모지(`fluent`, `noto`), 픽셀(`oneko`, `luizmelo`) | `animal-real-cat`, `animal-fluent-cat`, `animal-oneko-cat` |
 | `dev` | 개발 | 언어·OS·도구 마스코트 | `dev-rust-ferris`, `dev-go-gopher`, `dev-linux-tux` |
 | `game` | 게임 | 게임 캐릭터 | `game-lostark-mokoko`, `game-touhou-reimu`, `game-pokemon-pikachu` |

@@ -1,0 +1,167 @@
+[
+  {
+    "id": "dev-cncf-cappy",
+    "name": "Cappy (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Cappy © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 106329
+  },
+  {
+    "id": "dev-cncf-captain-kube",
+    "name": "Captain Kube (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Captain Kube © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 82510
+  },
+  {
+    "id": "dev-cncf-hazel",
+    "name": "Hazel (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Hazel © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 123853
+  },
+  {
+    "id": "dev-cncf-izzy",
+    "name": "Izzy (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Izzy © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 80624
+  },
+  {
+    "id": "dev-cncf-keddy",
+    "name": "Keddy (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Keddy © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 115382
+  },
+  {
+    "id": "dev-cncf-linky",
+    "name": "Linky (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Linky © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 108799
+  },
+  {
+    "id": "dev-cncf-obee",
+    "name": "Obee (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Obee © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 134880
+  },
+  {
+    "id": "dev-cncf-owlina",
+    "name": "Owlina (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Owlina © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 97888
+  },
+  {
+    "id": "dev-cncf-tai",
+    "name": "Tai (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Tai © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 142726
+  },
+  {
+    "id": "dev-cncf-tiago",
+    "name": "Tiago (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Tiago © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 105842
+  },
+  {
+    "id": "dev-cncf-zee",
+    "name": "Zee (CNCF)",
+    "category": "dev",
+    "series": "cncf",
+    "seriesName": "CNCF (Phippy와 친구들)",
+    "credit": "phippy.io — Zee © The Linux Foundation (CNCF), CC BY 4.0",
+    "license": "CC BY 4.0",
+    "files": [
+      "LICENSE",
+      "normal.png",
+      "pack.json"
+    ],
+    "bytes": 99255
+  }
+]

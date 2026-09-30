@@ -61,6 +61,18 @@ cli-pet pack check anime-myseries-mychar
 
 어떤 포즈가 있고 없는지, 파일이 제대로 읽히는지 알려줘요. 앱은 메뉴를 열 때마다 커스텀 팩을 다시 읽으니, 앱을 다시 켤 필요는 없어요.
 
+## 추가 팩 받기
+
+그림이 적은 팩 일부는 앱에 기본으로 넣지 않고 **추가 팩**으로 두었어요.
+
+```bash
+cli-pet pack get list          # 목록 (✓ 받은 것)
+cli-pet pack get dev-cncf-tai  # 하나 받기 (all 이면 전부)
+cli-pet pack remove dev-cncf-tai
+```
+
+펫 바꾸기 메뉴의 **추가 팩 받기**에서 눌러도 돼요. 받은 추가 팩은 기본 팩 목록에 나타나요.
+
 ## 권리 주의
 
 - 커스텀 팩에 넣은 그림의 권리는 **넣은 사람이 확인**해야 해요.

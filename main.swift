@@ -282,6 +282,7 @@ struct PackInfo: Decodable {
     var fps: Double?
     var squash: Bool?
     var lines: [String: PoseFiles]?  // 이 팩만의 대사 (docs/lines.md)
+    var extra: Bool?       // 추가 팩 (따로 받아서 ~/.cli-pet/packs 에 있어도 기본 팩으로 보여준다)
     var walkFacing: String?  // walk 그림이 보는 방향 "right"(기본) | "left"
     var zzz: Bool?    // true면 sleep 포즈가 있어도 zzz를 그린다
     var fit: String?  // "each"면 포즈마다 size 높이에 맞춘다 (원본 크기가 제각각인 팩용)
@@ -439,6 +440,8 @@ struct Creature {
     enum Mouth { case smile, cat, dog, nose, beak, bill, none }
     enum Mark { case none, leaf, stripes, belly, muzzle, face }
     enum Back { case none, quills, shell }
+    enum Shape { case blob, ball, keycap, block, dumpling }   // 몸 모양
+    enum Click { case jump, crack, press, squish }           // 클릭했을 때 반응
     var id: String
     var name: String
     var series: String
@@ -456,7 +459,15 @@ struct Creature {
     var nose: RGB? = nil                               // 코 색 (입이 none이면 코만 그림)
     var bow: RGB? = nil                                // 머리 리본
     var brows = false
-    var category: String { series == "sprout" ? "original" : "animal" }
+    var shape = Shape.blob
+    var click = Click.jump
+    var swirl: [RGB] = []                              // 몸 무늬 띠 (왁뿌볼)
+    var jelly = false                                  // 반투명 젤리 (쫀득볼)
+    var steam = false                                  // 일할 때 김 (만두)
+    var melts = false                                  // 잘 때 녹음 (버터)
+    var cat: String? = nil                             // 분류 (없으면 새싹=original, 나머지=animal)
+    var lines: [String: [String]] = [:]                // 이 캐릭터만의 대사
+    var category: String { cat ?? (series == "sprout" ? "original" : "animal") }
     // 몸 위로 튀어나오는 부분(귀, 새싹) 높이. 말풍선 위치에 쓴다
     var headroom: CGFloat {
         switch ears {
@@ -501,17 +512,38 @@ let creatures: [Creature] = [
     Creature(id: "animal-real-turtle", name: "거북이", series: "real", w: 58, h: 50,
              top: rgb(0.66, 0.87, 0.55), bottom: rgb(0.46, 0.73, 0.38),
              back: .shell, backColor: rgb(0.66, 0.48, 0.27), feet: rgb(0.50, 0.76, 0.42)),
+    // 장난감 (docs/toy-candidates.md)
+    Creature(id: "toy-squishy-waxball", name: "왁뿌볼", series: "squishy", w: 58, h: 56,
+             top: rgb(1.0, 0.84, 0.90), bottom: rgb(0.96, 0.70, 0.80), eyeY: 0.52,
+             shape: .ball, click: .crack, swirl: [rgb(0.72, 0.93, 0.86), rgb(0.84, 0.80, 1.0)], cat: "toy",
+             lines: ["poke": ["콰사삭!", "아그작!", "톡, 금 갔다", "파삭파삭"], "done": ["파사삭! 다 했어 ✨"], "hello": ["말랑말랑 안녕!"]]),
+    Creature(id: "toy-clicker-keycap", name: "키캡 클리커", series: "clicker", w: 58, h: 52,
+             top: rgb(0.88, 0.90, 1.0), bottom: rgb(0.70, 0.74, 0.95), eyeY: 0.6,
+             shape: .keycap, click: .press, cat: "toy",
+             lines: ["poke": ["딸깍!", "탁!", "딸깍딸깍", "한 번 더!"], "done": ["딸깍! 엔터 ⏎ 다 했어"], "think": ["타닥타닥… 생각 중"]]),
+    Creature(id: "toy-squishy-stressball", name: "쫀득볼", series: "squishy", w: 60, h: 54,
+             top: rgb(0.70, 0.92, 0.98), bottom: rgb(0.45, 0.78, 0.93), eyeY: 0.5,
+             shape: .ball, click: .squish, jelly: true, cat: "toy",
+             lines: ["poke": ["쪼물쪼물…", "말랑~", "쭈우욱", "천천히 돌아간다…"], "dizzy": ["너무 주물렀어~ 🫠"]]),
+    Creature(id: "toy-snack-dumpling", name: "만두 말랑이", series: "snack", w: 66, h: 46,
+             top: rgb(1.0, 0.99, 0.95), bottom: rgb(0.95, 0.91, 0.84), eyeY: 0.42, eyeGap: 0.16,
+             shape: .dumpling, steam: true, cat: "toy",
+             lines: ["poke": ["말랑 만두!", "갓 쪘어~", "모락모락"], "done": ["다 쪄졌어! 🥟"], "daily.lunch": ["만두 먹을 시간… 나 말고!"]]),
+    Creature(id: "toy-squishy-butter", name: "버터 말랑이", series: "squishy", w: 66, h: 44,
+             top: rgb(1.0, 0.95, 0.66), bottom: rgb(0.98, 0.87, 0.48), eyeY: 0.6,
+             shape: .block, melts: true, cat: "toy",
+             lines: ["poke": ["부드럽지?", "스르륵~", "빵에 발라 줘"], "sleep": [], "wake": ["녹는 줄 알았어…"]]),
 ]
 let defaultPetID = "original-sprout"
 
 // MARK: - 분류 (docs/pack-format.md)
 
 let categoryOrder: [(id: String, label: String)] = [
-    ("original", "자체 캐릭터"), ("animal", "동물"), ("dev", "개발"), ("game", "게임"),
+    ("original", "자체 캐릭터"), ("toy", "장난감"), ("animal", "동물"), ("dev", "개발"), ("game", "게임"),
     ("anime", "애니·만화·일러스트"), ("virtual", "보컬로이드·버추얼"), ("brand", "브랜드"),
     ("meme", "밈"), ("public", "공공 캐릭터"), ("etc", "기타"),
 ]
-let seriesLabels = ["sprout": "새싹", "real": "실제 동물 (자체)"]
+let seriesLabels = ["sprout": "새싹", "real": "실제 동물 (자체)", "squishy": "말랑이", "clicker": "딸깍이", "snack": "간식 말랑이"]
 
 struct PetEntry {
     var id: String
@@ -540,6 +572,11 @@ final class PetView: NSView {
     var workStreakStart: Double?
     var lastBreakAt = -1e9
     var nextChatter = CACurrentMediaTime() + Double.random(in: 600...1200)
+
+    // 장난감 반응
+    var crackAt = -10.0
+    var pressAt = -10.0
+    var squishAt = -10.0
 
     // 돌아다니기
     var walking = false
@@ -598,7 +635,7 @@ final class PetView: NSView {
             pack = nil
         }
         saveSelectedPackID(pack?.info.id ?? creature.id)
-        Lines.shared.pack = (pack?.info.lines ?? [:]).mapValues { $0.files }
+        Lines.shared.pack = pack.map { ($0.info.lines ?? [:]).mapValues { $0.files } } ?? creature.lines
         if announce { jumpAt = t; sayLine("switch", ["name": pack?.info.name ?? creature.name], for: 2.5) }
     }
 
@@ -612,7 +649,7 @@ final class PetView: NSView {
             return PetEntry(id: $0.info.id, name: $0.info.name,
                             category: categoryOrder.contains { $0.id == cat } ? cat : "etc",
                             series: series, seriesName: $0.info.seriesName ?? series,
-                            group: $0.info.group ?? 1, isUser: $0.isUser)
+                            group: $0.info.group ?? 1, isUser: $0.isUser && $0.info.extra != true)
         }
     }
     // 5분 동안 아무 일 없으면 잠든다
@@ -651,7 +688,11 @@ final class PetView: NSView {
             bubbleText = text
             bubbleUntil = t + (s.state == "working" || s.state == "think" ? 60 : s.state == "alert" ? 30 : 6)
         }
-        if s.state == "done" { happyUntil = t + 3 }
+        if s.state == "done" {
+            happyUntil = t + 3
+            if pack == nil && creature.click == .crack { crackAt = t }
+            if pack == nil && creature.click == .press { pressAt = t }
+        }
     }
 
     func say(_ s: String, _ dur: Double) { bubbleText = s; bubbleUntil = t + dur }
@@ -784,7 +825,12 @@ final class PetView: NSView {
             sayLine("dizzy", for: 2.5)
             return
         }
-        jumpAt = t
+        switch pack == nil ? creature.click : .jump {
+        case .jump: jumpAt = t
+        case .crack: jumpAt = t; crackAt = t
+        case .press: pressAt = t
+        case .squish: squishAt = t
+        }
         happyUntil = t + 1
         if wasSleeping {
             sayLine("wake", for: 2)
@@ -959,6 +1005,35 @@ final class PetView: NSView {
         }
         header("기본 팩")
         tree(all.filter { !$0.isUser }).forEach(root.addItem)
+        let extras = extraPackList().filter { !extraInstalled($0.id) }
+        if !extras.isEmpty {
+            let sub = NSMenu()
+            var bySeries: [(String, [ExtraPack])] = []
+            for e in extras {
+                let key = e.seriesName ?? "기타"
+                if let i = bySeries.firstIndex(where: { $0.0 == key }) { bySeries[i].1.append(e) } else { bySeries.append((key, [e])) }
+            }
+            for (series, list) in bySeries {
+                let h = NSMenuItem(title: series, action: nil, keyEquivalent: "")
+                h.isEnabled = false
+                sub.addItem(h)
+                for e in list {
+                    let item = NSMenuItem(title: e.name, action: #selector(getExtra(_:)), keyEquivalent: "")
+                    item.target = self
+                    item.representedObject = e.id
+                    item.indentationLevel = 1
+                    sub.addItem(item)
+                }
+                let all = NSMenuItem(title: "모두 받기 (\(list.count)개)", action: #selector(getExtraSeries(_:)), keyEquivalent: "")
+                all.target = self
+                all.representedObject = list.map(\.id)
+                all.indentationLevel = 1
+                sub.addItem(all)
+            }
+            let item = NSMenuItem(title: "추가 팩 받기", action: nil, keyEquivalent: "")
+            item.submenu = sub
+            root.addItem(item)
+        }
         root.addItem(.separator())
         header("커스텀 팩")
         let custom = tree(all.filter { $0.isUser })
@@ -1050,6 +1125,31 @@ final class PetView: NSView {
 
     @objc func openCredits() {
         NSWorkspace.shared.open(URL(string: "https://github.com/APapeIsName/cli-pet/blob/main/CREDITS.md")!)
+    }
+
+    @objc func getExtra(_ sender: NSMenuItem) { fetchExtras([sender.representedObject as? String ?? ""]) }
+    @objc func getExtraSeries(_ sender: NSMenuItem) { fetchExtras(sender.representedObject as? [String] ?? []) }
+
+    // 받는 동안 앱이 멈추지 않게 뒤에서 받는다
+    func fetchExtras(_ ids: [String]) {
+        let list = extraPackList().filter { ids.contains($0.id) }
+        guard !list.isEmpty else { return }
+        say("추가 팩 받는 중… (\(list.count)개)", 30)
+        DispatchQueue.global().async {
+            var failed = 0
+            for p in list { if (try? downloadExtra(p)) == nil { failed += 1 } }
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                MainActor.assumeIsolated {
+                    self.packs = findPacks()
+                    if failed == 0 {
+                        self.say("받았어! 펫 바꾸기에서 골라 봐 🎁", 4)
+                    } else {
+                        self.say("\(failed)개는 못 받았어 (인터넷 확인)", 4)
+                    }
+                }
+            }
+        }
     }
 
     @objc func openPackHelp() {
@@ -1159,6 +1259,30 @@ final class PetView: NSView {
             dx += CGFloat(sin(t * 3.5)) * 4
         }
 
+        // 장난감 반응 (코드 캐릭터만)
+        if pack == nil {
+            switch creature.click {
+            case .press:
+                // 작업 중엔 타이핑하듯 딸깍딸깍, 클릭·완료 땐 크게 한 번
+                if mood == "working" || mood == "think" {
+                    dy = 0
+                    let ph = (t * 4.5).truncatingRemainder(dividingBy: 1)
+                    if ph < 0.3 { sy *= 1 - 0.1 * CGFloat(sin(ph / 0.3 * .pi)) }
+                }
+                let pp = t - pressAt
+                if pp >= 0 && pp < 0.35 { sy *= 1 - 0.24 * CGFloat(sin(pp / 0.35 * .pi)); sx *= 1 + 0.04 * CGFloat(sin(pp / 0.35 * .pi)) }
+            case .squish:
+                // 꾹 눌렸다가 아주 천천히 돌아온다
+                let sp = t - squishAt
+                if sp >= 0 && sp < 1.6 {
+                    let k = CGFloat(sp < 0.12 ? sp / 0.12 : pow(1 - (sp - 0.12) / 1.48, 2))
+                    sx *= 1 + 0.38 * k
+                    sy *= 1 - 0.42 * k
+                }
+            default: break
+            }
+        }
+
         // 점프 (클릭)
         var jumpDy: CGFloat = 0
         let jp = (t - jumpAt) / jumpDur
@@ -1239,34 +1363,46 @@ final class PetView: NSView {
         if c.mark == .leaf { drawLeaf(ctx, h) }
         if c.tuft { drawTuft(ctx, c) }
 
-        // 몸
-        let body = CGMutablePath()
-        body.move(to: CGPoint(x: -w / 2, y: h * 0.35))
-        body.addCurve(to: CGPoint(x: 0, y: h), control1: CGPoint(x: -w / 2, y: h * 0.85), control2: CGPoint(x: -w * 0.28, y: h))
-        body.addCurve(to: CGPoint(x: w / 2, y: h * 0.35), control1: CGPoint(x: w * 0.28, y: h), control2: CGPoint(x: w / 2, y: h * 0.85))
-        body.addCurve(to: CGPoint(x: 0, y: 0), control1: CGPoint(x: w / 2, y: h * 0.06), control2: CGPoint(x: w * 0.3, y: 0))
-        body.addCurve(to: CGPoint(x: -w / 2, y: h * 0.35), control1: CGPoint(x: -w * 0.3, y: 0), control2: CGPoint(x: -w / 2, y: h * 0.06))
-        body.closeSubpath()
+        // 버터는 잘 때 녹아서 퍼진다
+        let melt: CGFloat = c.melts && sleeping ? min(1, CGFloat(t - lastEvent - 300) / 8) : 0
+        if melt > 0 {
+            fillStroke(ctx, ellipse(0, 1, c.w * (1 + 0.45 * melt), 11 * melt), c.bottom.cg, width: 1.4)
+            ctx.scaleBy(x: 1 + 0.12 * melt, y: 1 - 0.18 * melt)
+        }
+        if c.steam && (mood == "working" || mood == "think" || mood == "done") { drawSteam(ctx, c) }
 
+        // 몸
+        let body = bodyPath(c)
         ctx.saveGState()
         ctx.addPath(body)
         ctx.clip()
-        let grad = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: [c.top.cg, c.bottom.cg] as CFArray, locations: [0, 1])!
+        let top = c.jelly ? c.top.cg.copy(alpha: 0.82)! : c.top.cg
+        let bottom = c.jelly ? c.bottom.cg.copy(alpha: 0.9)! : c.bottom.cg
+        let grad = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: [top, bottom] as CFArray, locations: [0, 1])!
         ctx.drawLinearGradient(grad, start: CGPoint(x: 0, y: h), end: CGPoint(x: 0, y: 0), options: [])
         drawMarks(ctx, c)
+        drawToyDetails(ctx, c)
         ctx.restoreGState()
 
         ctx.addPath(body)
         ctx.setStrokeColor(ink)
         ctx.setLineWidth(2)
         ctx.strokePath()
+        if c.shape == .keycap { drawKeycapTop(ctx, c) }
+        if c.shape == .dumpling { drawPleats(ctx, c) }
+        if c.click == .crack { drawCracks(ctx, c) }
 
         if c.ears == .floppy { drawEars(ctx, c) }
         if let f = c.feet { drawFeet(ctx, w, f.cg) }
 
-        // 반짝이
-        ctx.setFillColor(NSColor(white: 1, alpha: 0.55).cgColor)
-        ctx.fillEllipse(in: CGRect(x: -w * 0.32, y: h * 0.66, width: 10, height: 6))
+        // 반짝이 (젤리·공은 더 크게)
+        ctx.setFillColor(NSColor(white: 1, alpha: c.jelly ? 0.7 : 0.55).cgColor)
+        if c.shape == .ball {
+            ctx.fillEllipse(in: CGRect(x: -w * 0.3, y: h * 0.62, width: c.jelly ? 15 : 12, height: c.jelly ? 10 : 8))
+            if c.jelly { ctx.fillEllipse(in: CGRect(x: w * 0.18, y: h * 0.22, width: 5, height: 4)) }
+        } else if c.shape != .keycap {
+            ctx.fillEllipse(in: CGRect(x: -w * 0.32, y: h * (c.shape == .dumpling ? 0.5 : 0.66), width: 10, height: 6))
+        }
 
         // 볼
         if c.cheekSize > 0 {
@@ -1284,6 +1420,148 @@ final class PetView: NSView {
     }
 
     var inkColor: CGColor { CGColor(red: 0.28, green: 0.14, blue: 0.10, alpha: 1) }
+
+    // MARK: 장난감 모양
+
+    func bodyPath(_ c: Creature) -> CGPath {
+        let w = c.w, h = c.h
+        switch c.shape {
+        case .ball:
+            return CGPath(ellipseIn: CGRect(x: -w / 2, y: 0, width: w, height: h), transform: nil)
+        case .keycap:
+            return CGPath(roundedRect: CGRect(x: -w / 2, y: 0, width: w, height: h), cornerWidth: 11, cornerHeight: 11, transform: nil)
+        case .block:
+            return CGPath(roundedRect: CGRect(x: -w / 2, y: 0, width: w, height: h), cornerWidth: 8, cornerHeight: 8, transform: nil)
+        case .dumpling:
+            let p = CGMutablePath()
+            p.move(to: CGPoint(x: -w / 2, y: h * 0.22))
+            p.addCurve(to: CGPoint(x: w / 2, y: h * 0.22), control1: CGPoint(x: -w * 0.42, y: h * 1.28), control2: CGPoint(x: w * 0.42, y: h * 1.28))
+            p.addCurve(to: CGPoint(x: -w / 2, y: h * 0.22), control1: CGPoint(x: w * 0.36, y: -h * 0.08), control2: CGPoint(x: -w * 0.36, y: -h * 0.08))
+            p.closeSubpath()
+            return p
+        case .blob:
+            let p = CGMutablePath()
+            p.move(to: CGPoint(x: -w / 2, y: h * 0.35))
+            p.addCurve(to: CGPoint(x: 0, y: h), control1: CGPoint(x: -w / 2, y: h * 0.85), control2: CGPoint(x: -w * 0.28, y: h))
+            p.addCurve(to: CGPoint(x: w / 2, y: h * 0.35), control1: CGPoint(x: w * 0.28, y: h), control2: CGPoint(x: w / 2, y: h * 0.85))
+            p.addCurve(to: CGPoint(x: 0, y: 0), control1: CGPoint(x: w / 2, y: h * 0.06), control2: CGPoint(x: w * 0.3, y: 0))
+            p.addCurve(to: CGPoint(x: -w / 2, y: h * 0.35), control1: CGPoint(x: -w * 0.3, y: 0), control2: CGPoint(x: -w / 2, y: h * 0.06))
+            p.closeSubpath()
+            return p
+        }
+    }
+
+    // 몸 안쪽 무늬 (몸 모양으로 잘린 상태에서 그린다)
+    func drawToyDetails(_ ctx: CGContext, _ c: Creature) {
+        let w = c.w, h = c.h
+        // 왁뿌볼: 파스텔 소용돌이 띠
+        for (i, color) in c.swirl.enumerated() {
+            let p = CGMutablePath()
+            let y0 = h * (0.3 + 0.28 * CGFloat(i))
+            p.move(to: CGPoint(x: -w * 0.6, y: y0))
+            p.addCurve(to: CGPoint(x: w * 0.6, y: y0 + h * 0.12), control1: CGPoint(x: -w * 0.2, y: y0 + h * 0.3), control2: CGPoint(x: w * 0.2, y: y0 - h * 0.25))
+            ctx.addPath(p)
+            ctx.setStrokeColor(color.cg.copy(alpha: 0.85)!)
+            ctx.setLineWidth(h * 0.14)
+            ctx.strokePath()
+        }
+        // 버터: 아래쪽을 감싼 은박지
+        if c.shape == .block {
+            let foil = CGMutablePath()
+            foil.move(to: CGPoint(x: -w / 2 - 2, y: h * 0.22))
+            let n = 9
+            for i in 0...n {
+                let x = -w / 2 + w * CGFloat(i) / CGFloat(n)
+                foil.addLine(to: CGPoint(x: x, y: h * (i % 2 == 0 ? 0.22 : 0.16)))
+            }
+            foil.addLine(to: CGPoint(x: w / 2 + 2, y: -2))
+            foil.addLine(to: CGPoint(x: -w / 2 - 2, y: -2))
+            foil.closeSubpath()
+            ctx.addPath(foil)
+            let silver = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                                    colors: [CGColor(gray: 0.93, alpha: 1), CGColor(gray: 0.72, alpha: 1)] as CFArray, locations: [0, 1])!
+            ctx.saveGState(); ctx.clip()
+            ctx.drawLinearGradient(silver, start: CGPoint(x: 0, y: h * 0.22), end: CGPoint(x: 0, y: 0), options: [])
+            ctx.restoreGState()
+            ctx.setStrokeColor(CGColor(gray: 0.6, alpha: 0.8)); ctx.setLineWidth(0.8)
+            for x in [-0.3, -0.05, 0.22] as [CGFloat] {
+                ctx.move(to: CGPoint(x: w * x, y: h * 0.15)); ctx.addLine(to: CGPoint(x: w * x + 2, y: h * 0.03))
+            }
+            ctx.strokePath()
+        }
+    }
+
+    // 키캡: 윗면(살짝 들어간 면)
+    func drawKeycapTop(_ ctx: CGContext, _ c: Creature) {
+        let w = c.w, h = c.h
+        let face = CGPath(roundedRect: CGRect(x: -w / 2 + 6, y: h * 0.2, width: w - 12, height: h * 0.74), cornerWidth: 8, cornerHeight: 8, transform: nil)
+        ctx.addPath(face)
+        let g = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: [CGColor(red: 0.97, green: 0.97, blue: 1, alpha: 1), c.top.cg] as CFArray, locations: [0, 1])!
+        ctx.saveGState(); ctx.clip()
+        ctx.drawLinearGradient(g, start: CGPoint(x: 0, y: h), end: CGPoint(x: 0, y: h * 0.2), options: [])
+        ctx.restoreGState()
+        ctx.addPath(face); ctx.setStrokeColor(inkColor.copy(alpha: 0.35)!); ctx.setLineWidth(1.2); ctx.strokePath()
+        ctx.setFillColor(NSColor(white: 1, alpha: 0.8).cgColor)
+        ctx.fillEllipse(in: CGRect(x: -w / 2 + 10, y: h * 0.8, width: 9, height: 4))
+    }
+
+    // 만두: 윗부분 주름
+    func drawPleats(_ ctx: CGContext, _ c: Creature) {
+        let w = c.w, h = c.h
+        ctx.setStrokeColor(inkColor.copy(alpha: 0.55)!)
+        ctx.setLineWidth(1.4)
+        for x in [-0.22, -0.08, 0.06, 0.2] as [CGFloat] {
+            ctx.move(to: CGPoint(x: w * x, y: h * 1.01))
+            ctx.addQuadCurve(to: CGPoint(x: w * x + 4, y: h * 0.8), control: CGPoint(x: w * x + 5, y: h * 0.95))
+        }
+        ctx.strokePath()
+    }
+
+    // 만두: 김 모락모락
+    func drawSteam(_ ctx: CGContext, _ c: Creature) {
+        let h = c.h
+        ctx.setLineWidth(2)
+        for i in 0..<3 {
+            let ph = (t * 0.7 + Double(i) / 3).truncatingRemainder(dividingBy: 1)
+            let x = CGFloat(i - 1) * 12 + CGFloat(sin(t * 2 + Double(i))) * 2
+            let y = h * 1.0 + CGFloat(ph) * 18
+            ctx.setStrokeColor(CGColor(gray: 0.65, alpha: 0.6 * (1 - ph)))
+            ctx.move(to: CGPoint(x: x, y: y))
+            ctx.addCurve(to: CGPoint(x: x, y: y + 10), control1: CGPoint(x: x + 4, y: y + 3), control2: CGPoint(x: x - 4, y: y + 7))
+            ctx.strokePath()
+        }
+    }
+
+    // 왁뿌볼: 클릭하거나 일이 끝나면 금이 가고 조각이 튄다
+    func drawCracks(_ ctx: CGContext, _ c: Creature) {
+        let age = t - crackAt
+        guard age >= 0 && age < 1.6 else { return }
+        let w = c.w, h = c.h
+        let fade = CGFloat(age < 1.2 ? 1 : (1.6 - age) / 0.4)
+        ctx.setStrokeColor(inkColor.copy(alpha: 0.8 * fade)!)
+        ctx.setLineWidth(1.4)
+        let cracks: [[(CGFloat, CGFloat)]] = [[(-0.1, 0.98), (-0.02, 0.8), (-0.14, 0.7), (-0.05, 0.58)],
+                                              [(0.42, 0.72), (0.3, 0.66), (0.34, 0.54)],
+                                              [(-0.46, 0.4), (-0.34, 0.44), (-0.36, 0.3)]]
+        for crack in cracks {
+            for (i, (x, y)) in crack.enumerated() {
+                let pt = CGPoint(x: w * x, y: h * y)
+                if i == 0 { ctx.move(to: pt) } else { ctx.addLine(to: pt) }
+            }
+        }
+        ctx.strokePath()
+        // 튀는 조각
+        let a = CGFloat(min(age, 0.8) / 0.8)
+        for (i, dir) in [(-1.0, 1.2), (1.0, 1.0), (-0.6, 0.6), (0.8, 1.5), (0.2, 1.7)].enumerated() {
+            let (dx, dy) = (CGFloat(dir.0), CGFloat(dir.1))
+            let x = dx * (w * 0.4 + a * 22), y = h * 0.6 + dy * a * 24 - a * a * 18
+            let color = ([c.top] + c.swirl)[i % (c.swirl.count + 1)].cg.copy(alpha: fade)!
+            let shard = CGMutablePath()
+            shard.move(to: CGPoint(x: x, y: y + 3)); shard.addLine(to: CGPoint(x: x + 3, y: y - 2)); shard.addLine(to: CGPoint(x: x - 3, y: y - 2))
+            shard.closeSubpath()
+            ctx.addPath(shard); ctx.setFillColor(color); ctx.fillPath()
+        }
+    }
 
     func drawLeaf(_ ctx: CGContext, _ h: CGFloat) {
         let sway = CGFloat(sin(t * 2.2)) * 3
@@ -1966,6 +2244,49 @@ func runSetup(_ on: Bool, hooks: Bool = true) -> Int32 {
     }
 }
 
+// MARK: - 추가 팩 (extra-packs/, docs/custom-packs.md)
+
+struct ExtraPack: Decodable {
+    var id: String
+    var name: String
+    var seriesName: String?
+    var credit: String?
+    var files: [String]
+    var bytes: Int?
+}
+
+let extraBaseURL = env["CLI_PET_EXTRA_BASE"] ?? "https://raw.githubusercontent.com/APapeIsName/cli-pet/main/extra-packs/"  // 시험용으로 바꿀 수 있다
+
+// 앱에 같이 들어 있는 목록 (없으면 GitHub에서)
+func extraPackList() -> [ExtraPack] {
+    let local = Bundle.main.resourceURL?.appendingPathComponent("extra-packs-index.json")
+    if let local, let data = try? Data(contentsOf: local), let list = try? JSONDecoder().decode([ExtraPack].self, from: data) { return list }
+    if let url = URL(string: extraBaseURL + "index.json"), let data = try? Data(contentsOf: url),
+       let list = try? JSONDecoder().decode([ExtraPack].self, from: data) { return list }
+    return []
+}
+
+func extraInstalled(_ id: String) -> Bool {
+    FileManager.default.fileExists(atPath: userPacksDir.appendingPathComponent(id).appendingPathComponent("pack.json").path)
+}
+
+// 파일을 모두 받은 뒤에 한 번에 옮긴다 (중간에 끊겨도 반쯤 받은 팩이 남지 않게)
+func downloadExtra(_ p: ExtraPack) throws {
+    let fm = FileManager.default
+    let tmp = fm.temporaryDirectory.appendingPathComponent("cli-pet-\(p.id)-\(UUID().uuidString)")
+    try fm.createDirectory(at: tmp, withIntermediateDirectories: true)
+    defer { try? fm.removeItem(at: tmp) }
+    for f in p.files {
+        guard let url = URL(string: extraBaseURL + p.id + "/" + (f.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? f)) else { continue }
+        let data = try Data(contentsOf: url)
+        try data.write(to: tmp.appendingPathComponent(f))
+    }
+    let dest = userPacksDir.appendingPathComponent(p.id)
+    try fm.createDirectory(at: userPacksDir, withIntermediateDirectories: true)
+    try? fm.removeItem(at: dest)
+    try fm.moveItem(at: tmp, to: dest)
+}
+
 // MARK: - 커스텀 팩 도구 (docs/custom-packs.md)
 
 let userPacksDir = stateDir.appendingPathComponent("packs")
@@ -1981,8 +2302,29 @@ func runPackCommand(_ a: [String]) -> Int32 {
     case "check":
         guard a.count >= 2 else { print("사용법: cli-pet pack check <id|폴더>"); return 1 }
         return packCheck(a[1])
+    case "get":
+        let list = extraPackList()
+        guard a.count >= 2, a[1] != "list" else {
+            print("추가 팩 (cli-pet pack get <id|all>):")
+            for p in list { print("  \(extraInstalled(p.id) ? "✓" : " ") \(p.id.padding(toLength: 26, withPad: " ", startingAt: 0)) \(p.name)") }
+            return 0
+        }
+        let want = a[1] == "all" ? list : list.filter { $0.id == a[1] }
+        if want.isEmpty { print("✗ 그런 추가 팩이 없어요: \(a[1]) (목록: cli-pet pack get list)"); return 1 }
+        var code: Int32 = 0
+        for p in want {
+            do { try downloadExtra(p); print("✓ \(p.name) 받음") } catch { print("✗ \(p.name): \(error.localizedDescription)"); code = 1 }
+        }
+        return code
+    case "remove":
+        guard a.count >= 2 else { print("사용법: cli-pet pack remove <id>"); return 1 }
+        let dir = userPacksDir.appendingPathComponent(a[1])
+        guard FileManager.default.fileExists(atPath: dir.path) else { print("✗ 없어요: \(dir.path)"); return 1 }
+        try? FileManager.default.removeItem(at: dir)
+        print("✓ 지웠어요: \(a[1])")
+        return 0
     default:
-        print("사용법:\n  cli-pet pack new <id> [그림 폴더]\n  cli-pet pack check <id|폴더>")
+        print("사용법:\n  cli-pet pack new <id> [그림 폴더]\n  cli-pet pack check <id|폴더>\n  cli-pet pack get <id|all|list>\n  cli-pet pack remove <id>")
         return 1
     }
 }

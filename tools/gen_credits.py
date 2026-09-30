@@ -14,6 +14,7 @@ CATEGORY = {"animal": "동물", "dev": "개발", "game": "게임", "anime": "애
             "brand": "브랜드", "meme": "밈", "public": "공공 캐릭터", "etc": "기타"}
 
 packs = [json.load(open(p)) for p in sorted(glob.glob(os.path.join(ROOT, "packs", "*", "pack.json")))]
+extras = [json.load(open(p)) for p in sorted(glob.glob(os.path.join(ROOT, "extra-packs", "*", "pack.json")))]
 
 def lic(name):
     url = LICENSE_URL.get(name)
@@ -25,7 +26,7 @@ out = ["# 크레딧", "",
        "- 팩 그림은 권리자가 공식으로 배포한 파일을 **자르고, 크기를 줄이고, PNG로 변환**한 것이에요. 새로 그린 부분은 없어요. 파일별 원본 주소와 바꾼 내용은 각 팩 폴더의 `LICENSE`에 있어요.",
        "- 앱 코드의 [MIT 라이선스](LICENSE)는 팩 그림에 적용되지 않아요.", "",
        "## 자체 캐릭터", "",
-       "새싹과 자체 동물 10종(고양이, 강아지, 햄스터, 토끼, 펭귄, 여우, 오리, 수달, 고슴도치, 거북이)은 이 저장소의 코드(`main.swift`)로 그려요. 앱 코드와 같은 [MIT 라이선스](LICENSE)예요.", ""]
+       "새싹, 자체 동물 10종(고양이, 강아지, 햄스터, 토끼, 펭귄, 여우, 오리, 수달, 고슴도치, 거북이), 장난감 5종(왁뿌볼, 키캡 클리커, 쫀득볼, 만두 말랑이, 버터 말랑이)은 이 저장소의 코드(`main.swift`)로 그려요. 앱 코드와 같은 [MIT 라이선스](LICENSE)예요.", ""]
 
 for cat, label in CATEGORY.items():
     in_cat = [p for p in packs if p.get("category") == cat]
@@ -48,5 +49,11 @@ for cat, label in CATEGORY.items():
         out.append(f"| {names} | {credit} | {lic(license)} | {src} |")
     out.append("")
 
+if extras:
+    out += ["## 추가 팩", "", "앱에 기본으로 들어 있지 않고, 펫 메뉴의 **추가 팩 받기**나 `cli-pet pack get` 으로 받는 팩이에요.", "",
+            "| 캐릭터 | 표기 | 라이선스 | 출처 |", "|---|---|---|---|"]
+    names = ", ".join(f"[{p['name']}](extra-packs/{p['id']}/LICENSE)" for p in extras)
+    out.append(f"| {names} | phippy.io — Phippy and Friends © The Linux Foundation (CNCF) | {lic(extras[0]['license'])} | https://github.com/cncf/artwork/tree/main/other/phippy-and-friends |")
+    out.append("")
 open(os.path.join(ROOT, "CREDITS.md"), "w").write("\n".join(out))
-print(f"CREDITS.md: 팩 {len(packs)}개")
+print(f"CREDITS.md: 기본 팩 {len(packs)}개, 추가 팩 {len(extras)}개")

@@ -1,6 +1,6 @@
 {
-  "id": "dev-cncf-obee",
-  "name": "Obee (CNCF)",
+  "id": "dev-cncf-owlina",
+  "name": "Owlina (CNCF)",
   "group": 1,
   "category": "dev",
   "series": "cncf",
@@ -8,9 +8,9 @@
   "tags": [
     "vector"
   ],
-  "credit": "phippy.io — Obee © The Linux Foundation (CNCF), CC BY 4.0",
+  "credit": "phippy.io — Owlina © The Linux Foundation (CNCF), CC BY 4.0",
   "license": "CC BY 4.0",
-  "source": "https://github.com/cncf/artwork/blob/main/other/phippy-and-friends/obee_full.png",
+  "source": "https://github.com/cncf/artwork/blob/main/other/phippy-and-friends/owlina_full.png",
   "retrieved": "2026-09-29",
   "pixel": false,
   "size": 80,
@@ -18,5 +18,6 @@
   "squash": true,
   "poses": {
     "normal": "normal.png"
-  }
+  },
+  "extra": true
 }

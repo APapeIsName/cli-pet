@@ -7,6 +7,8 @@ Claude Code, Codex, Copilot CLI, Gemini CLI, Cursor를 연결하면 지금 무�
 
 ![자체 캐릭터들](docs/previews/group0-creatures.png)
 
+![장난감](docs/previews/toys.png)
+
 ## 설치
 
 **필요한 것:** macOS, Apple 개발 도구(Xcode Command Line Tools). 설치할 때 컴퓨터에서 직접 빌드해요.
@@ -104,8 +106,10 @@ npm test | cli-pet pipe       # 명령 출력을 펫이 말풍선으로 보여�
 | 분류 | 들어 있는 펫 |
 |---|---|
 | 자체 캐릭터 | 새싹 |
+| 장난감 | 왁뿌볼, 쫀득볼, 버터 말랑이, 키캡 클리커, 만두 말랑이 (클릭하면 금이 가거나, 딸깍 눌리거나, 쭉 늘어나요) |
 | 동물 | 자체 동물 10종 (고양이, 강아지, 햄스터, 토끼, 펭귄, 여우, 오리, 수달, 고슴도치, 거북이), Fluent Emoji 동물 8종, oneko 고양이 |
-| 개발 | Ferris (Rust), Go Gopher, Tux (Linux), Duke (Java), Kodee (Kotlin), Android 로봇, Zig 마스코트 3종, Phippy와 친구들 (CNCF) 12종 |
+| 개발 | Ferris (Rust), Go Gopher, Tux (Linux), Duke (Java), Kodee (Kotlin), Android 로봇, Zig 마스코트 3종, Phippy (CNCF) |
+| 추가 팩 (메뉴에서 받기) | Phippy의 친구들 (CNCF) 11종 |
 
 자체 캐릭터와 동물은 코드로 그려서 모든 표정이 있어요. 다른 팩은 권리자가 공식으로 배포한 그림을 그대로 쓰기 때문에, 그림이 없는 표정은 비슷한 표정으로 대신해요.
 
@@ -130,7 +134,7 @@ npm test | cli-pet pipe       # 명령 출력을 펫이 말풍선으로 보여�
 
 ### 기본 팩과 커스텀 팩
 
-메뉴는 **기본 팩**(앱에 들어 있는 것)과 **커스텀 팩**(직접 넣은 것)으로 나뉘어 있어요.
+메뉴는 **기본 팩**(앱에 들어 있는 것)과 **커스텀 팩**(직접 넣은 것)으로 나뉘어 있어요. 그림이 1장뿐인 팩 일부는 **추가 팩**으로 빼 두었어요. 펫 바꾸기 → **추가 팩 받기**나 `cli-pet pack get list` 로 받을 수 있어요.
 
 ### 커스텀 팩 만들기
 
@@ -160,7 +164,7 @@ cli-pet pack check anime-myseries-mychar                      # 검사
 
 | 캐릭터 | 권리자 | 라이선스 |
 |---|---|---|
-| 새싹, 자체 동물 10종 | CLIPet (이 저장소) | MIT |
+| 새싹, 자체 동물 10종, 장난감 5종 | CLIPet (이 저장소) | MIT |
 | Fluent Emoji 동물 8종 | Microsoft | MIT |
 | oneko 고양이 | Masayuki Koba, Tatsuya Kato | 퍼블릭 도메인 |
 | Ferris | Karen Rustad Tölva | CC0 |
@@ -170,7 +174,7 @@ cli-pet pack check anime-myseries-mychar                      # 검사
 | Kodee | JetBrains s.r.o. | CC BY 4.0 |
 | Android 로봇 | Google | CC BY 3.0 |
 | Zig 마스코트 3종 | Zig 프로젝트 | CC BY 4.0 |
-| Phippy와 친구들 12종 | The Linux Foundation (CNCF), phippy.io | CC BY 4.0 |
+| Phippy와 친구들 (Phippy는 기본, 친구 11종은 추가 팩) | The Linux Foundation (CNCF), phippy.io | CC BY 4.0 |
 
 ## 라이선스
 
