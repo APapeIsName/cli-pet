@@ -19,5 +19,6 @@
   "poses": {
     "normal": "normal.png",
     "walk": "walk.png"
-  }
+  },
+  "walkFacing": "left"
 }

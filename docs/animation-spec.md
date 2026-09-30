@@ -73,7 +73,7 @@
 | 1.5초 안에 5번 클릭 | dizzy | 어지러워~ |
 | 드래그 시작 → 놓기 | held → land | 으앗 / 휴 |
 | 마우스를 올림 | notice | (없음) |
-| 90초 동안 아무 일 없음 | sleep | zzz |
+| 5분 동안 아무 일 없음 | sleep | zzz |
 | 자는 중 클릭 | wake → react | 으음… 왜~ |
 
 ### B. Claude Code 따라가기 (훅)
@@ -157,7 +157,7 @@ packs/gopher/
 
 ---
 
-## 현재 코드와 차이
+## 현재 코드와 차이 (0.2.0)
 
-- **이미 있음:** idle, sleep, react, dizzy, work, alert, done, say (그림은 코드로 직접 그림)
-- **없음:** 팩 불러오기, held, land, notice, think(현재는 work와 같음), work:종류별 소품, error, tired, talk, walk, daily 전체
+- **있음:** idle, sleep, react, wake, dizzy, held, land, think, work(종류별 말풍선), alert, done, walk, daily(아침·주말·점심·저녁·자정·쉬기·혼잣말), 팩 불러오기
+- **없음:** notice(마우스 올림), work:종류별 소품 그림, error(도구 실패), tired, talk, 일상 행동 전용 포즈(eat, stretch, yawn)

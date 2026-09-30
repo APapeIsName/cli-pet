@@ -64,6 +64,13 @@ let defaultLines: [(key: String, lines: [String], help: String)] = [
     ("held", [], "들어 올렸을 때"),
     ("land", [], "내려놓았을 때"),
     ("switch", ["짠! {name}"], "펫을 바꿨을 때 — {name}"),
+    ("daily.morning", ["좋은 아침! ☀️", "오늘도 잘 부탁해!", "잘 잤어?"], "그날 처음 켰을 때 (새벽 5시~오전 11시)"),
+    ("daily.weekend", ["오늘은 쉬는 날! 🎉", "주말인데 일해? 대단해"], "주말에 처음 켰을 때"),
+    ("daily.lunch", ["배고파… 점심 먹자 🍚", "밥 먹고 하자!", "점심 뭐 먹어?"], "점심 시간 (12시)"),
+    ("daily.dinner", ["저녁 먹었어? 🍜", "배꼽시계가 울려…"], "저녁 시간 (18시)"),
+    ("daily.late", ["이제 자자… 🌙", "벌써 이 시간이야, 눈 아프지 않아?", "하암… 졸려"], "자정이 넘었을 때 (한 번)"),
+    ("daily.break", ["기지개 한 번 켜자 🙆", "물 한 잔 마시고 하자 💧", "잠깐 쉬었다 할까?"], "1시간 넘게 쉬지 않고 작업할 때"),
+    ("daily.chatter", ["심심해~", "♪ 흥얼흥얼", "오늘 날씨 어때?", "간식 없나…", "뭐 하고 있어?", "창밖 좀 봐 봐"], "한가할 때 가끔 혼잣말"),
 ]
 
 // 대사 찾는 순서: ~/.cli-pet/lines.json → 지금 팩의 pack.json "lines" → 기본 대사
@@ -275,6 +282,7 @@ struct PackInfo: Decodable {
     var fps: Double?
     var squash: Bool?
     var lines: [String: PoseFiles]?  // 이 팩만의 대사 (docs/lines.md)
+    var walkFacing: String?  // walk 그림이 보는 방향 "right"(기본) | "left"
     var zzz: Bool?    // true면 sleep 포즈가 있어도 zzz를 그린다
     var fit: String?  // "each"면 포즈마다 size 높이에 맞춘다 (원본 크기가 제각각인 팩용)
     var category: String?
@@ -524,6 +532,21 @@ final class PetView: NSView {
     var dragging = false
     var scale: CGFloat = 1
     var hideTimer: Timer?
+
+    // 일상 대사
+    var lastDailyCheck = 0.0
+    var firedToday: Set<String> = []
+    var dailyDay = ""
+    var workStreakStart: Double?
+    var lastBreakAt = -1e9
+    var nextChatter = CACurrentMediaTime() + Double.random(in: 600...1200)
+
+    // 돌아다니기
+    var walking = false
+    var walkDir: CGFloat = 1
+    var walkTargetX: CGFloat = 0
+    var nextWalk = CACurrentMediaTime() + Double.random(in: 20...50)
+    var lastTick = CACurrentMediaTime()
     // 배율을 뺀 논리 좌표의 크기 (그리기는 이 크기 기준)
     var lb: NSRect { NSRect(x: 0, y: 0, width: bounds.width / scale, height: bounds.height / scale) }
 
@@ -592,12 +615,17 @@ final class PetView: NSView {
                             group: $0.info.group ?? 1, isUser: $0.isUser)
         }
     }
-    var sleeping: Bool { mood == "idle" && bubbleText == nil && t - lastEvent > 90 }
+    // 5분 동안 아무 일 없으면 잠든다
+    var sleeping: Bool { mood == "idle" && bubbleText == nil && !walking && t - lastEvent > 300 }
 
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
     func tick() {
         t = CACurrentMediaTime()
+        let dt = min(0.1, t - lastTick)
+        lastTick = t
+        if t - lastDailyCheck > 1 { lastDailyCheck = t; checkDaily() }
+        updateWalk(dt)
         if t > nextBlink { blinkAt = t; nextBlink = t + Double.random(in: 2...5) }
         if bubbleText != nil && t > bubbleUntil { bubbleText = nil }
         let age = t - moodSince
@@ -608,6 +636,11 @@ final class PetView: NSView {
     }
 
     func apply(_ s: Status) {
+        if walking { stopWalk() }
+        if s.state == "working" || s.state == "think" {
+            // 15분 넘게 조용했으면 새 작업 흐름으로 본다
+            if workStreakStart == nil || t - lastEvent > 15 * 60 { workStreakStart = t }
+        }
         mood = s.state
         moodSince = t
         lastEvent = t
@@ -628,8 +661,121 @@ final class PetView: NSView {
         if let text = Lines.shared.resolve(key, vars) { say(text, dur) }
     }
 
+    // MARK: 일상 대사 (docs/lines.md)
+
+    var now: () -> Date = Date.init  // 시험할 때 시각을 바꿔 넣는다
+
+    var busy: Bool { mood == "working" || mood == "think" || mood == "alert" || dragging }
+
+    // 그날 처음 켰을 때 인사: 주말 → daily.weekend, 아침 → daily.morning, 그 밖 → hello
+    func greetOnLaunch() {
+        let now = now()
+        let today = dayString(now)
+        let first = (loadSettings()["lastDay"] as? String) != today
+        saveSetting("lastDay", today)
+        guard dailyOn() && first else { sayLine("hello", for: 3); return }
+        let cal = Calendar.current
+        if cal.isDateInWeekend(now) {
+            sayLine("daily.weekend", for: 4)
+        } else if (5..<11).contains(cal.component(.hour, from: now)) {
+            sayLine("daily.morning", for: 4)
+        } else {
+            sayLine("hello", for: 3)
+        }
+        jumpAt = t
+    }
+
+    func checkDaily() {
+        guard dailyOn(), petVisible else { return }
+        let now = now()
+        let day = dayString(now)
+        if day != dailyDay { dailyDay = day; firedToday = [] }
+        let hour = Calendar.current.component(.hour, from: now)
+        func once(_ key: String, _ dur: Double) -> Bool {
+            guard !firedToday.contains(key), !busy, bubbleText == nil else { return false }
+            firedToday.insert(key)
+            sayLine(key, for: dur)
+            jumpAt = t
+            lastEvent = t
+            return true
+        }
+        if hour == 12 && once("daily.lunch", 5) { return }
+        if hour == 18 && once("daily.dinner", 5) { return }
+        if (0..<4).contains(hour) && once("daily.late", 5) { return }
+        // 오래 쉬지 않고 작업 중이면 쉬자고 한다 (한 시간에 한 번)
+        if let start = workStreakStart {
+            if t - lastEvent > 15 * 60 {
+                workStreakStart = nil
+            } else if t - start > 60 * 60 && t - lastBreakAt > 60 * 60 && mood != "alert" && bubbleText == nil {
+                lastBreakAt = t
+                workStreakStart = t
+                sayLine("daily.break", for: 5)
+                return
+            }
+        }
+        // 한가할 때 가끔 혼잣말
+        if t > nextChatter {
+            nextChatter = t + Double.random(in: 600...1500)
+            if !busy && !sleeping && !walking && bubbleText == nil && t - lastEvent > 60 { sayLine("daily.chatter", for: 4) }
+        }
+    }
+
+    // MARK: 돌아다니기
+
+    func updateWalk(_ dt: Double) {
+        guard let w = window, w.isVisible else { return }
+        if walking {
+            if dragging || busy { stopWalk(); return }
+            var f = w.frame
+            let step = walkDir * 28 * scale * CGFloat(dt)
+            if (walkDir > 0 && f.origin.x + step >= walkTargetX) || (walkDir < 0 && f.origin.x + step <= walkTargetX) {
+                f.origin.x = walkTargetX
+                w.setFrameOrigin(f.origin)
+                stopWalk()
+            } else {
+                f.origin.x += step
+                w.setFrameOrigin(f.origin)
+            }
+            return
+        }
+        guard walkOn(), t > nextWalk else { return }
+        nextWalk = t + Double.random(in: 25...70)
+        guard !busy, !sleeping, bubbleText == nil, t - jumpAt > 1, mood == "idle" || mood == "say" || mood == "done" else { return }
+        let vf = (w.screen ?? NSScreen.main)?.visibleFrame ?? w.frame
+        // 펫 몸이 화면 밖으로 나가지 않게, 창의 투명한 가장자리는 넘어가도 된다
+        let half = petRect.width / 2 * scale + 8
+        let minX = vf.minX - (w.frame.width / 2 - half), maxX = vf.maxX - w.frame.width / 2 - half
+        guard maxX > minX else { return }
+        var dir: CGFloat = Bool.random() ? 1 : -1
+        let dist = CGFloat.random(in: 40...150) * scale
+        if w.frame.minX + dir * dist > maxX || w.frame.minX + dir * dist < minX { dir = -dir }
+        let target = min(maxX, max(minX, w.frame.minX + dir * dist))
+        guard abs(target - w.frame.minX) > 10 else { return }
+        walkDir = dir
+        walkTargetX = target
+        walking = true
+    }
+
+    func stopWalk() {
+        guard walking else { return }
+        walking = false
+        savePosition()
+    }
+
+    // 걷는 방향으로 그림을 뒤집을지. 코드 캐릭터는 꼬리가 오른쪽이라 왼쪽을 보는 셈
+    var flipForWalk: Bool {
+        guard walking else { return false }
+        if let pack {
+            guard pack.has("walk") else { return false }
+            let facesLeft = pack.info.walkFacing == "left"
+            return (walkDir < 0) != facesLeft
+        }
+        return walkDir > 0
+    }
+
     func poke() {
         let wasSleeping = sleeping
+        if walking { stopWalk() }
         lastEvent = t
         clickTimes = clickTimes.filter { t - $0 < 1.5 } + [t]
         if clickTimes.count >= 5 {
@@ -658,7 +804,7 @@ final class PetView: NSView {
     override func mouseDragged(with e: NSEvent) {
         let p = NSEvent.mouseLocation
         let dx = p.x - downMouse.x, dy = p.y - downMouse.y
-        if hypot(dx, dy) > 3 && !dragged { dragged = true; dragging = true; sayLine("held", for: 1.5) }
+        if hypot(dx, dy) > 3 && !dragged { dragged = true; dragging = true; stopWalk(); sayLine("held", for: 1.5) }
         if dragged { window?.setFrameOrigin(NSPoint(x: downOrigin.x + dx, y: downOrigin.y + dy)) }
     }
 
@@ -726,6 +872,12 @@ final class PetView: NSView {
         login.target = self
         login.state = loginItemOn() ? .on : .off
         menu.addItem(login)
+        for (title, key, sel) in [("일상 대사", "daily", #selector(toggleDaily)), ("돌아다니기", "walk", #selector(toggleWalk))] {
+            let item = NSMenuItem(title: title, action: sel, keyEquivalent: "")
+            item.target = self
+            item.state = (loadSettings()[key] as? Bool ?? true) ? .on : .off
+            menu.addItem(item)
+        }
         let bar = NSMenuItem(title: "메뉴 막대에 아이콘 보이기", action: #selector(toggleStatusBar), keyEquivalent: "")
         bar.target = self
         bar.state = statusBarOn() ? .on : .off
@@ -733,6 +885,19 @@ final class PetView: NSView {
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: ""))
         return menu
+    }
+
+    @objc func toggleDaily() {
+        let on = !dailyOn()
+        saveSetting("daily", on)
+        say(on ? "이제 가끔 말 걸게!" : "조용히 있을게", 3)
+    }
+
+    @objc func toggleWalk() {
+        let on = !walkOn()
+        saveSetting("walk", on)
+        if !on { stopWalk() }
+        say(on ? "산책 다녀올게~" : "가만히 있을게", 3)
     }
 
     @objc func toggleVisible() {
@@ -970,6 +1135,10 @@ final class PetView: NSView {
         switch mood {
         case _ where dragging:
             rot = CGFloat(sin(t * 5)) * 0.12
+        case _ where walking:
+            // 종종걸음: 통통 튀면서 살짝 흔들린다
+            dy = CGFloat(abs(sin(t * 9))) * 3
+            rot = CGFloat(sin(t * 9)) * 0.04
         case "working":
             dy = CGFloat(abs(sin(t * 7))) * 5
         case "think":
@@ -1015,7 +1184,7 @@ final class PetView: NSView {
         ctx.saveGState()
         ctx.translateBy(x: base.midX + dx, y: base.minY + dy)
         ctx.rotate(by: rot)
-        ctx.scaleBy(x: sx, y: sy)
+        ctx.scaleBy(x: flipForWalk ? -sx : sx, y: sy)
         if let pack {
             drawPack(ctx, pack, pose: currentPose(dizzy: dizzy, happy: happy))
         } else {
@@ -1028,6 +1197,7 @@ final class PetView: NSView {
 
     func currentPose(dizzy: Bool, happy: Bool) -> String {
         if dragging { return "held" }
+        if walking { return "walk" }
         if dizzy { return "dizzy" }
         if sleeping { return "sleep" }
         switch mood {
@@ -1911,6 +2081,12 @@ func savedOrigin(size: NSSize) -> NSPoint? {
 }
 
 func statusBarOn() -> Bool { loadSettings()["statusBar"] as? Bool ?? true }
+func dailyOn() -> Bool { loadSettings()["daily"] as? Bool ?? true }
+func walkOn() -> Bool { loadSettings()["walk"] as? Bool ?? true }
+func dayString(_ d: Date) -> String {
+    let c = Calendar.current.dateComponents([.year, .month, .day], from: d)
+    return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
+}
 
 // 메뉴 막대 아이콘: 새싹 모양 (템플릿 이미지라 다크 모드에서도 색이 맞춰진다)
 func sproutIcon() -> NSImage {
@@ -1996,7 +2172,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         updateStatusItem()
 
         lastMtime = mtime()
-        view.sayLine("hello", for: 3)
+        view.greetOnLaunch()
 
         let anim = Timer(timeInterval: 1.0 / 60, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.view.tick() }
