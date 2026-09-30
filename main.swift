@@ -64,6 +64,9 @@ let defaultLines: [(key: String, lines: [String], help: String)] = [
     ("held", [], "들어 올렸을 때"),
     ("land", [], "내려놓았을 때"),
     ("switch", ["짠! {name}"], "펫을 바꿨을 때 — {name}"),
+    ("disguise.reveal", ["후훗, 속았지?", "짜잔~ 나였지롱!", "들켰다!"], "다른 펫으로 변신해 있을 때 클릭 (변신하는 펫만)"),
+    ("disguise.start", [], "몰래 변신할 때"),
+    ("disguise.end", [], "변신이 저절로 풀릴 때"),
     ("daily.morning", ["좋은 아침! ☀️", "오늘도 잘 부탁해!", "잘 잤어?"], "그날 처음 켰을 때 (새벽 5시~오전 11시)"),
     ("daily.weekend", ["오늘은 쉬는 날! 🎉", "주말인데 일해? 대단해"], "주말에 처음 켰을 때"),
     ("daily.lunch", ["배고파… 점심 먹자 🍚", "밥 먹고 하자!", "점심 뭐 먹어?"], "점심 시간 (12시)"),
@@ -284,6 +287,7 @@ struct PackInfo: Decodable {
     var lines: [String: PoseFiles]?  // 이 팩만의 대사 (docs/lines.md)
     var extra: Bool?       // 추가 팩 (따로 받아서 ~/.cli-pet/packs 에 있어도 기본 팩으로 보여준다)
     var walkFacing: String?  // walk 그림이 보는 방향 "right"(기본) | "left"
+    var disguise: DisguiseInfo?  // 가끔 다른 펫으로 변신 (docs/pack-format.md)
     var zzz: Bool?    // true면 sleep 포즈가 있어도 zzz를 그린다
     var fit: String?  // "each"면 포즈마다 size 높이에 맞춘다 (원본 크기가 제각각인 팩용)
     var category: String?
@@ -291,6 +295,13 @@ struct PackInfo: Decodable {
     var seriesName: String?
     var tags: [String]?
     var poses: [String: PoseFiles]
+}
+
+struct DisguiseInfo: Decodable {
+    var `as`: [String]?      // 변신할 펫 id 목록 ("*" 또는 없으면 아무 펫)
+    var tell: String?        // 변신해도 남는 표시 그림 (머리 위에 그림)
+    var every: [Double]?     // 변신 간격 [최소, 최대] 초
+    var duration: [Double]?  // 변신 유지 [최소, 최대] 초
 }
 
 // 없는 포즈는 앞에서부터 찾아 대신 쓴다 (docs/animation-spec.md)
@@ -470,6 +481,9 @@ struct Creature {
     var eyeColor: RGB? = nil                           // 눈동자 색 (없으면 까만 눈)
     var earColor: RGB? = nil                           // 귀 색 (없으면 몸 색)
     var tuftColor: RGB? = nil                          // 앞머리 색 (없으면 몸 아래 색)
+    var leaf = false                                   // 머리 위 나뭇잎 (mark와 따로)
+    var mask: RGB? = nil                               // 눈가 무늬 (너구리)
+    var disguises = false                              // 가끔 다른 펫으로 둔갑
     var category: String { cat ?? (series == "sprout" ? "original" : "animal") }
     // 몸 위로 튀어나오는 부분(귀, 새싹) 높이. 말풍선 위치에 쓴다
     var headroom: CGFloat {
@@ -477,7 +491,7 @@ struct Creature {
         case .long: return 30
         case .pointy: return 13
         case .round: return 6
-        default: return mark == .leaf ? 12 : tuft ? 10 : back == .quills ? 8 : back == .shell ? 5 : 0
+        default: return mark == .leaf || leaf ? 12 : tuft ? 10 : back == .quills ? 8 : back == .shell ? 5 : 0
         }
     }
 }
@@ -485,6 +499,11 @@ struct Creature {
 let creatures: [Creature] = [
     Creature(id: "original-sprout", name: "새싹", series: "sprout",
              top: rgb(1.0, 0.76, 0.62), bottom: rgb(0.94, 0.52, 0.40), mark: .leaf),
+    Creature(id: "original-dungap", name: "둔갑이", series: "dungap", w: 62, h: 52,
+             top: rgb(0.74, 0.62, 0.52), bottom: rgb(0.58, 0.46, 0.37), inner: rgb(0.45, 0.34, 0.27), patch: rgb(0.99, 0.94, 0.87),
+             ears: .round, tail: .fluffy, mouth: .dog, mark: .muzzle, eyeY: 0.53, cat: "original",
+             lines: ["poke": ["펑!", "둔갑!", "나뭇잎은 건드리지 마~"], "hello": ["펑! 둔갑이 등장"], "disguise.reveal": ["펑! 사실 나였지롱~", "후훗, 속았지?", "나뭇잎 보고 알았지?"]],
+             leaf: true, mask: rgb(0.34, 0.26, 0.21), disguises: true),
     Creature(id: "animal-real-cat", name: "고양이", series: "real", w: 62,
              top: rgb(1.0, 0.84, 0.60), bottom: rgb(0.97, 0.66, 0.36), patch: rgb(0.88, 0.52, 0.25),
              ears: .pointy, tail: .thin, mouth: .cat, mark: .stripes),
@@ -546,7 +565,7 @@ let categoryOrder: [(id: String, label: String)] = [
     ("anime", "애니·만화·일러스트"), ("virtual", "보컬로이드·버추얼"), ("brand", "브랜드"),
     ("meme", "밈"), ("public", "공공 캐릭터"), ("etc", "기타"),
 ]
-let seriesLabels = ["sprout": "새싹", "real": "실제 동물 (자체)", "squishy": "말랑이", "clicker": "딸깍이", "snack": "간식 말랑이"]
+let seriesLabels = ["dungap": "둔갑이", "sprout": "새싹", "real": "실제 동물 (자체)", "squishy": "말랑이", "clicker": "딸깍이", "snack": "간식 말랑이"]
 
 struct PetEntry {
     var id: String
@@ -577,6 +596,13 @@ final class PetView: NSView {
     var nextChatter = CACurrentMediaTime() + Double.random(in: 600...1200)
 
     // 장난감 반응
+    // 변신
+    var disguiseID: String?
+    var disguiseUntil = 0.0
+    var nextDisguise = CACurrentMediaTime() + Double.random(in: 90...240)
+    var poofAt = -10.0
+    var tellCache: (String, CGImage?)?
+
     var crackAt = -10.0
     var pressAt = -10.0
     var squishAt = -10.0
@@ -627,6 +653,8 @@ final class PetView: NSView {
     }
 
     func selectPack(_ id: String, announce: Bool) {
+        disguiseID = nil
+        nextDisguise = t + Double.random(in: 90...240)
         let id = id == "sprout" ? defaultPetID : id  // 예전 설정 호환
         if let c = creatures.first(where: { $0.id == id }) {
             creature = c
@@ -664,7 +692,7 @@ final class PetView: NSView {
         t = CACurrentMediaTime()
         let dt = min(0.1, t - lastTick)
         lastTick = t
-        if t - lastDailyCheck > 1 { lastDailyCheck = t; checkDaily() }
+        if t - lastDailyCheck > 1 { lastDailyCheck = t; checkDaily(); updateDisguise() }
         updateWalk(dt)
         if t > nextBlink { blinkAt = t; nextBlink = t + Double.random(in: 2...5) }
         if bubbleText != nil && t > bubbleUntil { bubbleText = nil }
@@ -677,6 +705,7 @@ final class PetView: NSView {
 
     func apply(_ s: Status) {
         if walking { stopWalk() }
+        if disguiseID != nil && s.state != "say" { endDisguise(reveal: false) }
         if s.state == "working" || s.state == "think" {
             // 15분 넘게 조용했으면 새 작업 흐름으로 본다
             if workStreakStart == nil || t - lastEvent > 15 * 60 { workStreakStart = t }
@@ -727,6 +756,84 @@ final class PetView: NSView {
             sayLine("hello", for: 3)
         }
         jumpAt = t
+    }
+
+    // MARK: 변신 (둔갑이, 커스텀 팩의 "disguise")
+
+    var canDisguise: Bool { pack.map { $0.info.disguise != nil } ?? creature.disguises }
+
+    func disguiseTargets() -> [String] {
+        let me = pack?.info.id ?? creature.id
+        if pack == nil {
+            // 코드 캐릭터는 코드 캐릭터로만 둔갑 (같은 그림체)
+            return creatures.filter { $0.id != me && !$0.disguises }.map(\.id)
+        }
+        let all = entries.map(\.id).filter { $0 != me }
+        if let list = pack?.info.disguise?.as, !list.contains("*") { return list.filter { all.contains($0) } }
+        return all
+    }
+
+    func updateDisguise() {
+        guard canDisguise else { if disguiseID != nil { disguiseID = nil }; return }
+        if disguiseID != nil {
+            if t > disguiseUntil || busy { endDisguise(reveal: false) }
+            return
+        }
+        guard t > nextDisguise else { return }
+        let every = pack?.info.disguise?.every ?? [120, 300]
+        nextDisguise = t + Double.random(in: every[0]...max(every[0], every.last ?? every[0]))
+        if !busy && !sleeping && !walking && bubbleText == nil { startDisguise() }
+    }
+
+    func startDisguise(_ target: String? = nil) {
+        guard let id = target ?? disguiseTargets().randomElement() else { return }
+        let dur = pack?.info.disguise?.duration ?? [40, 90]
+        disguiseID = id
+        disguiseUntil = t + Double.random(in: dur[0]...max(dur[0], dur.last ?? dur[0]))
+        poofAt = t
+        sayLine("disguise.start", for: 2)
+    }
+
+    func endDisguise(reveal: Bool) {
+        guard disguiseID != nil else { return }
+        disguiseID = nil
+        poofAt = t
+        if reveal { jumpAt = t; happyUntil = t + 1.5; sayLine("disguise.reveal", for: 3) } else { sayLine("disguise.end", for: 2) }
+    }
+
+    // 변신해도 남는 표시: 둔갑이는 나뭇잎, 팩은 disguise.tell 그림
+    func drawTell(_ ctx: CGContext, height: CGFloat, realPack: Pack?, realCreature: Creature) {
+        if realPack == nil {
+            if realCreature.leaf { drawFlatLeaf(ctx, height - 4) }
+            return
+        }
+        guard let p = realPack, let file = p.info.disguise?.tell else { return }
+        if tellCache?.0 != p.info.id { tellCache = (p.info.id, loadFrames(p.dir.appendingPathComponent(file), 1).first?.image) }
+        guard let img = tellCache?.1 else { return }
+        let w: CGFloat = 20, h = w * CGFloat(img.height) / CGFloat(img.width)
+        // 변신한 모습의 머리 꼭대기에 살짝 파묻히게 얹는다
+        var top = height
+        if let (shown, rect) = lastPackDraw { top = rect.minY + rect.height * headTop(shown) }
+        ctx.interpolationQuality = .high
+        ctx.draw(img, in: CGRect(x: -w / 2 + 2, y: top - h * 0.45, width: w, height: h))
+    }
+
+    // 펑! 연기
+    func drawPoof(_ ctx: CGContext, _ base: NSRect) {
+        let a = t - poofAt
+        guard a >= 0 && a < 0.55 else { return }
+        let k = CGFloat(a / 0.55)
+        for i in 0..<9 {
+            let ang = Double(i) / 9 * 2 * .pi
+            let r = 10 + k * 26
+            let x = base.midX + CGFloat(cos(ang)) * r, y = base.midY + CGFloat(sin(ang)) * r * 0.8
+            let size = 16 * (1 - k * 0.6)
+            ctx.setFillColor(CGColor(gray: 0.92, alpha: 0.9 * (1 - k)))
+            ctx.fillEllipse(in: CGRect(x: x - size / 2, y: y - size / 2, width: size, height: size))
+            ctx.setStrokeColor(CGColor(gray: 0.6, alpha: 0.6 * (1 - k)))
+            ctx.setLineWidth(1.2)
+            ctx.strokeEllipse(in: CGRect(x: x - size / 2, y: y - size / 2, width: size, height: size))
+        }
     }
 
     func checkDaily() {
@@ -818,6 +925,7 @@ final class PetView: NSView {
     }
 
     func poke() {
+        if disguiseID != nil { endDisguise(reveal: true); lastEvent = t; return }
         let wasSleeping = sleeping
         if walking { stopWalk() }
         lastEvent = t
@@ -1229,6 +1337,13 @@ final class PetView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
         ctx.scaleBy(x: scale, y: scale)
+        // 변신 중이면 그리는 동안만 겉모습을 바꾼다 (고른 펫·대사는 그대로)
+        let realPack = pack, realCreature = creature
+        if let id = disguiseID {
+            if let c = creatures.first(where: { $0.id == id }) { creature = c; pack = nil }
+            else if let p = packs.first(where: { $0.info.id == id }) { pack = p }
+        }
+        defer { pack = realPack; creature = realCreature }
         let base = petRect
         let dizzy = t < dizzyUntil
         let happy = t < happyUntil || mood == "say"
@@ -1312,12 +1427,15 @@ final class PetView: NSView {
         ctx.translateBy(x: base.midX + dx, y: base.minY + dy)
         ctx.rotate(by: rot)
         ctx.scaleBy(x: flipForWalk ? -sx : sx, y: sy)
+        lastPackDraw = nil
         if let pack {
             drawPack(ctx, pack, pose: currentPose(dizzy: dizzy, happy: happy))
         } else {
             drawBody(ctx, dizzy: dizzy, happy: happy)
         }
+        if disguiseID != nil { drawTell(ctx, height: base.height, realPack: realPack, realCreature: realCreature) }
         ctx.restoreGState()
+        drawPoof(ctx, base)
 
         if sleeping && (pack?.has("sleep") != true || pack?.info.zzz == true) { drawZzz(base: base) }
     }
@@ -1339,6 +1457,28 @@ final class PetView: NSView {
         return "normal"
     }
 
+    var lastPackDraw: (CGImage, CGRect)?   // 방금 그린 팩 그림과 위치 (변신 표시 자리 찾기)
+    var headTopCache: [UnsafeMutableRawPointer: CGFloat] = [:]
+
+    // 그림 가운데 세로줄에서 맨 위 불투명 픽셀 높이 (0~1, 아래가 0) = 머리 꼭대기
+    func headTop(_ img: CGImage) -> CGFloat {
+        let key = Unmanaged.passUnretained(img).toOpaque()
+        if let v = headTopCache[key] { return v }
+        let w = img.width, h = img.height
+        var data = [UInt8](repeating: 0, count: w * h * 4)
+        var top: CGFloat = 1
+        if let c = CGContext(data: &data, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4, space: CGColorSpaceCreateDeviceRGB(),
+                             bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) {
+            c.draw(img, in: CGRect(x: 0, y: 0, width: w, height: h))
+            let x0 = w * 45 / 100, x1 = w * 55 / 100
+            search: for row in 0..<h {  // 메모리의 첫 줄 = 그림의 맨 위
+                for x in x0..<max(x0 + 1, x1) where data[(row * w + x) * 4 + 3] > 128 { top = 1 - CGFloat(row) / CGFloat(h); break search }
+            }
+        }
+        headTopCache[key] = top
+        return top
+    }
+
     func drawPack(_ ctx: CGContext, _ pack: Pack, pose: String) {
         guard let img = pack.frame(pose, at: t) else { return }
         let s = pack.info.fit == "each" ? (pack.info.size ?? 80) / CGFloat(img.height) : packScale
@@ -1349,6 +1489,7 @@ final class PetView: NSView {
         h *= fit
         ctx.interpolationQuality = pack.info.pixel == true ? .none : .high
         ctx.draw(img, in: CGRect(x: -w / 2, y: 0, width: w, height: h))
+        lastPackDraw = (img, CGRect(x: -w / 2, y: 0, width: w, height: h))
     }
 
     func drawBody(_ ctx: CGContext, dizzy: Bool, happy: Bool) {
@@ -1364,6 +1505,7 @@ final class PetView: NSView {
         drawTail(ctx, c, happy: happyFace)
         if c.ears != .floppy { drawEars(ctx, c) }
         if c.mark == .leaf { drawLeaf(ctx, h) }
+        if c.leaf { drawFlatLeaf(ctx, h) }
         if c.tuft { drawTuft(ctx, c) }
 
         // 버터는 잘 때 녹아서 퍼진다
@@ -1566,6 +1708,25 @@ final class PetView: NSView {
         }
     }
 
+    // 둔갑 너구리의 나뭇잎: 머리 위에 납작하게 얹은 넓은 잎
+    func drawFlatLeaf(_ ctx: CGContext, _ h: CGFloat) {
+        let sway = CGFloat(sin(t * 1.8)) * 0.05
+        ctx.saveGState()
+        ctx.translateBy(x: 3, y: h + 2)
+        ctx.rotate(by: -0.18 + sway)
+        let leaf = CGMutablePath()
+        leaf.move(to: CGPoint(x: -13, y: 0))
+        leaf.addQuadCurve(to: CGPoint(x: 13, y: 1), control: CGPoint(x: 0, y: 11))
+        leaf.addQuadCurve(to: CGPoint(x: -13, y: 0), control: CGPoint(x: 0, y: -7))
+        fillStroke(ctx, leaf, CGColor(red: 0.42, green: 0.74, blue: 0.34, alpha: 1), width: 1.6)
+        ctx.setStrokeColor(CGColor(red: 0.25, green: 0.5, blue: 0.2, alpha: 1))
+        ctx.setLineWidth(1)
+        ctx.move(to: CGPoint(x: -11, y: 0.3)); ctx.addQuadCurve(to: CGPoint(x: 11, y: 1), control: CGPoint(x: 0, y: 3))
+        ctx.move(to: CGPoint(x: -13, y: 0)); ctx.addLine(to: CGPoint(x: -17, y: -2))  // 꼭지
+        ctx.strokePath()
+        ctx.restoreGState()
+    }
+
     func drawLeaf(_ ctx: CGContext, _ h: CGFloat) {
         let sway = CGFloat(sin(t * 2.2)) * 3
         ctx.setStrokeColor(CGColor(red: 0.30, green: 0.55, blue: 0.25, alpha: 1))
@@ -1724,6 +1885,13 @@ final class PetView: NSView {
             ctx.fillPath()
         case .leaf, .none:
             break
+        }
+        if let m = c.mask {
+            for side in [-1.0, 1.0] as [CGFloat] {
+                ctx.addPath(ellipse(side * w * c.eyeGap, h * c.eyeY - 1, 17, 13, rot: side * 0.35))
+                ctx.setFillColor(m.cg)
+                ctx.fillPath()
+            }
         }
     }
 
@@ -2554,6 +2722,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case "show": view.show()
         case "hide": view.hide(for: nil)
         case "statusbar": updateStatusItem()
+        case "disguise":
+            if view.canDisguise { if view.disguiseID == nil { view.startDisguise() } else { view.endDisguise(reveal: true) } }
+            else { view.say("나는 변신 못 해…", 2) }
         case _ where cmd.hasPrefix("size:"):
             if let v = Double(cmd.dropFirst(5)) { view.applyScale(CGFloat(v), save: true) }
         default: break
@@ -2580,6 +2751,7 @@ let usage = """
   cli-pet            펫 띄우기 (이 터미널에 붙어서 실행)
   cli-pet start      펫 띄우기 (터미널과 분리)
   cli-pet show / hide  펫 보이기 / 숨기기
+  cli-pet disguise     변신하는 펫을 바로 변신시키기 (한 번 더 하면 원래대로)
   cli-pet menubar on|off  메뉴 막대 아이콘 켜기 / 끄기
   cli-pet size <작게|보통|크게|아주크게|배율>  펫 크기
   cli-pet say <글>   펫이 말하게 하기
@@ -2658,6 +2830,9 @@ case "show":
     }
 case "hide":
     postCommand("hide")
+case "disguise":
+    // 변신하는 펫(둔갑이, disguise가 있는 팩)을 바로 변신시키거나 되돌린다
+    postCommand("disguise")
 case "menubar":
     guard let v = args.dropFirst().first, v == "on" || v == "off" else { print("사용법: cli-pet menubar on|off"); exit(1) }
     saveSetting("statusBar", v == "on")

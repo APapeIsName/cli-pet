@@ -86,6 +86,7 @@ packs/gopher/
 | `fps` | | 프레임 배열의 재생 속도 (기본 6) |
 | `squash` | | `false`면 찌그러짐·늘이기 모션을 끈다 (기본 `true`) |
 | `lines` | | 이 팩만의 대사. 형식은 [lines.md](lines.md) |
+| `disguise` | | 가끔 다른 펫으로 **변신**한다. `{"as": [펫 id…] 또는 ["*"], "tell": "tell.png", "every": [최소, 최대] 초, "duration": [최소, 최대] 초}`. `tell` 그림은 변신한 모습의 머리 위에 얹혀 정체를 알려 준다. 변신 중에 클릭하면 원래 모습으로 돌아온다 |
 | `walkFacing` | | `walk` 그림이 보는 방향 `"right"`(기본) 또는 `"left"`. 걷는 방향에 맞춰 그림을 뒤집을 때 쓴다 |
 | `zzz` | | `true`면 `sleep` 포즈가 있어도 잘 때 zzz를 그린다 (기본: `sleep` 포즈가 없을 때만) |
 | `fit` | | `"each"`면 포즈마다 따로 `size` 높이에 맞춘다. 원본 크기가 제각각인 팩용 (기본: 모든 포즈에 `normal` 기준 배율) |

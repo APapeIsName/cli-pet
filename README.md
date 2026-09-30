@@ -94,6 +94,7 @@ cli-pet connect codex      # claude · codex · copilot · gemini · cursor · a
 cli-pet start                 # 펫 띄우기
 cli-pet show / cli-pet hide   # 펫 보이기 / 숨기기
 cli-pet menubar on|off        # 메뉴 막대 아이콘 켜기 / 끄기
+cli-pet disguise              # 둔갑이를 바로 둔갑시키기 (한 번 더 하면 원래대로)
 cli-pet size 크게             # 작게 · 보통 · 크게 · 아주크게, 또는 0.5~2.5 배율
 cli-pet say "안녕"            # 펫이 말하게 하기
 npm test | cli-pet pipe       # 명령 출력을 펫이 말풍선으로 보여주기 (출력은 그대로 터미널에도 나옴)
@@ -105,7 +106,7 @@ npm test | cli-pet pipe       # 명령 출력을 펫이 말풍선으로 보여�
 
 | 분류 | 들어 있는 펫 |
 |---|---|
-| 자체 캐릭터 | 새싹 |
+| 자체 캐릭터 | 새싹, **둔갑이** (가끔 다른 펫으로 둔갑해요. 머리 위 나뭇잎은 그대로라 알아챌 수 있고, 클릭하면 "펑!" 하고 돌아와요) |
 | 장난감 | 왁뿌볼, 쫀득볼, 버터 말랑이, 키캡 클리커, 만두 말랑이 (클릭하면 금이 가거나, 딸깍 눌리거나, 쭉 늘어나요) |
 | 동물 | 자체 동물 10종 (고양이, 강아지, 햄스터, 토끼, 펭귄, 여우, 오리, 수달, 고슴도치, 거북이), Fluent Emoji 동물 8종, oneko 고양이 |
 | 개발 | Ferris (Rust), Go Gopher, Tux (Linux), Duke (Java), Kodee (Kotlin), Android 로봇, Zig 마스코트 3종, Phippy (CNCF) |
