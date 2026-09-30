@@ -87,6 +87,7 @@ packs/gopher/
 | `squash` | | `false`면 찌그러짐·늘이기 모션을 끈다 (기본 `true`) |
 | `lines` | | 이 팩만의 대사. 형식은 [lines.md](lines.md) |
 | `disguise` | | 가끔 다른 펫으로 **변신**한다. `{"as": [펫 id…] 또는 ["*"], "tell": "tell.png", "every": [최소, 최대] 초, "duration": [최소, 최대] 초}`. `tell` 그림은 변신한 모습의 머리 위에 얹혀 정체를 알려 준다. 변신 중에 클릭하면 원래 모습으로 돌아온다 |
+| `anchors` | | 아이템 자리. `{"eyes": [x, y], "eyeGap": 한쪽 눈까지 거리, "eyeSize": 눈 폭, "neck": 목 높이, "headWidth": 머리 폭}` (0~1, 그림 왼쪽 아래 기준, 거리는 그림 폭 기준). `eyes`가 없으면 얼굴 아이템(안경류)을 못 쓰고, 머리 아이템은 그림에서 머리 꼭대기를 찾아 얹는다 |
 | `walkFacing` | | `walk` 그림이 보는 방향 `"right"`(기본) 또는 `"left"`. 걷는 방향에 맞춰 그림을 뒤집을 때 쓴다 |
 | `zzz` | | `true`면 `sleep` 포즈가 있어도 잘 때 zzz를 그린다 (기본: `sleep` 포즈가 없을 때만) |
 | `fit` | | `"each"`면 포즈마다 따로 `size` 높이에 맞춘다. 원본 크기가 제각각인 팩용 (기본: 모든 포즈에 `normal` 기준 배율) |

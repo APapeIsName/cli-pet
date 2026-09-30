@@ -64,6 +64,7 @@ let defaultLines: [(key: String, lines: [String], help: String)] = [
     ("held", [], "들어 올렸을 때"),
     ("land", [], "내려놓았을 때"),
     ("switch", ["짠! {name}"], "펫을 바꿨을 때 — {name}"),
+    ("item.wear", ["{item} 어때?", "잘 어울려?", "짠! {item}"], "아이템을 씌웠을 때 — {item}"),
     ("disguise.reveal", ["후훗, 속았지?", "짜잔~ 나였지롱!", "들켰다!"], "다른 펫으로 변신해 있을 때 클릭 (변신하는 펫만)"),
     ("disguise.start", [], "몰래 변신할 때"),
     ("disguise.end", [], "변신이 저절로 풀릴 때"),
@@ -288,6 +289,7 @@ struct PackInfo: Decodable {
     var extra: Bool?       // 추가 팩 (따로 받아서 ~/.cli-pet/packs 에 있어도 기본 팩으로 보여준다)
     var walkFacing: String?  // walk 그림이 보는 방향 "right"(기본) | "left"
     var disguise: DisguiseInfo?  // 가끔 다른 펫으로 변신 (docs/pack-format.md)
+    var anchors: AnchorInfo?     // 아이템 자리 (docs/pack-format.md)
     var zzz: Bool?    // true면 sleep 포즈가 있어도 zzz를 그린다
     var fit: String?  // "each"면 포즈마다 size 높이에 맞춘다 (원본 크기가 제각각인 팩용)
     var category: String?
@@ -295,6 +297,15 @@ struct PackInfo: Decodable {
     var seriesName: String?
     var tags: [String]?
     var poses: [String: PoseFiles]
+}
+
+// 팩 그림에서 얼굴·목 위치 (0~1, 왼쪽 아래가 0). 없으면 머리 아이템만 자동으로 얹는다
+struct AnchorInfo: Decodable {
+    var eyes: [CGFloat]?     // 두 눈의 가운데 [x, y]
+    var eyeGap: CGFloat?     // 가운데에서 한쪽 눈까지 거리 (그림 폭 기준)
+    var eyeSize: CGFloat?    // 눈 크기 (그림 폭 기준)
+    var neck: CGFloat?       // 목 높이
+    var headWidth: CGFloat?  // 머리 폭 (그림 폭 기준)
 }
 
 struct DisguiseInfo: Decodable {
@@ -558,6 +569,47 @@ let creatures: [Creature] = [
 ]
 let defaultPetID = "original-sprout"
 
+// MARK: - 아이템 (모든 펫에게 씌우는 소품, 코드로 그림)
+
+enum ItemSlot: String, CaseIterable {
+    case head, face, neck, hand
+    var label: String { ["head": "머리", "face": "얼굴", "neck": "목", "hand": "손"][rawValue]! }
+}
+
+struct Item {
+    let id: String
+    let name: String
+    let slot: ItemSlot
+}
+
+let items: [Item] = [
+    Item(id: "beanie", name: "털모자", slot: .head), Item(id: "party", name: "파티 모자", slot: .head),
+    Item(id: "crown", name: "왕관", slot: .head), Item(id: "ribbon", name: "리본", slot: .head),
+    Item(id: "flower", name: "꽃", slot: .head), Item(id: "headphones", name: "헤드폰", slot: .head),
+    Item(id: "sunglasses", name: "선글라스", slot: .face), Item(id: "glasses", name: "동그란 안경", slot: .face),
+    Item(id: "heartglasses", name: "하트 안경", slot: .face),
+    Item(id: "bowtie", name: "나비넥타이", slot: .neck), Item(id: "scarf", name: "목도리", slot: .neck),
+    Item(id: "mic", name: "마이크", slot: .hand), Item(id: "coffee", name: "커피", slot: .hand), Item(id: "balloon", name: "풍선", slot: .hand),
+]
+
+// 펫마다 따로 기억한다: settings.json "items": { 펫 id: { 자리: 아이템 id } }
+func wornItems(_ petID: String) -> [ItemSlot: Item] {
+    let all = loadSettings()["items"] as? [String: [String: String]] ?? [:]
+    var out: [ItemSlot: Item] = [:]
+    for (slot, id) in all[petID] ?? [:] {
+        if let sl = ItemSlot(rawValue: slot), let it = items.first(where: { $0.id == id && $0.slot == sl }) { out[sl] = it }
+    }
+    return out
+}
+
+func setWorn(_ petID: String, _ slot: ItemSlot, _ itemID: String?) {
+    var all = loadSettings()["items"] as? [String: [String: String]] ?? [:]
+    var mine = all[petID] ?? [:]
+    mine[slot.rawValue] = itemID
+    all[petID] = mine.isEmpty ? nil : mine
+    saveSetting("items", all)
+}
+
 // MARK: - 분류 (docs/pack-format.md)
 
 let categoryOrder: [(id: String, label: String)] = [
@@ -801,6 +853,159 @@ final class PetView: NSView {
         if reveal { jumpAt = t; happyUntil = t + 1.5; sayLine("disguise.reveal", for: 3) } else { sayLine("disguise.end", for: 2) }
     }
 
+    // MARK: 아이템 그리기
+
+    struct Anchors {
+        var top: CGPoint          // 머리 꼭대기
+        var headW: CGFloat        // 머리 폭
+        var eyes: (CGPoint, CGPoint)?
+        var eyeSize: CGFloat
+        var neck: CGPoint
+        var neckW: CGFloat
+        var hand: CGPoint
+    }
+
+    // 지금 그린 모습에서 아이템 자리를 찾는다 (코드 캐릭터는 정확히, 팩은 anchors 또는 그림에서 추정)
+    func anchors(height: CGFloat) -> Anchors {
+        if pack == nil {
+            let c = creature
+            let topY = c.shape == .dumpling ? c.h * 1.0 : c.h
+            return Anchors(top: CGPoint(x: 0, y: topY), headW: c.w * 0.82,
+                           eyes: (CGPoint(x: -c.w * c.eyeGap, y: c.h * c.eyeY), CGPoint(x: c.w * c.eyeGap, y: c.h * c.eyeY)),
+                           eyeSize: 11, neck: CGPoint(x: 0, y: c.h * 0.08), neckW: c.w * 0.7,
+                           hand: CGPoint(x: c.w * 0.5, y: c.h * 0.3))
+        }
+        let (img, r) = lastPackDraw ?? (nil, CGRect(x: -30, y: 0, width: 60, height: height)) as (CGImage?, CGRect)
+        let a = pack?.info.anchors
+        let topY = img.map { r.minY + r.height * headTop($0) } ?? r.maxY
+        let headW = (a?.headWidth ?? 0.72) * r.width
+        var eyes: (CGPoint, CGPoint)?
+        if let e = a?.eyes, e.count == 2 {
+            let cx = r.minX + e[0] * r.width, cy = r.minY + e[1] * r.height, g = (a?.eyeGap ?? 0.12) * r.width
+            eyes = (CGPoint(x: cx - g, y: cy), CGPoint(x: cx + g, y: cy))
+        }
+        return Anchors(top: CGPoint(x: r.midX, y: topY), headW: headW, eyes: eyes,
+                       eyeSize: (a?.eyeSize ?? 0.1) * r.width,
+                       neck: CGPoint(x: r.midX, y: r.minY + (a?.neck ?? 0.32) * r.height), neckW: headW * 0.8,
+                       hand: CGPoint(x: r.maxX - r.width * 0.14, y: r.minY + r.height * 0.3))
+    }
+
+    func drawItems(_ ctx: CGContext, height: CGFloat, petID: String) {
+        let worn = wornItems(petID)
+        guard !worn.isEmpty else { return }
+        let a = anchors(height: height)
+        let k = a.headW / 50  // 머리 크기에 맞춰 키운다
+        for slot in [ItemSlot.neck, .hand, .face, .head] {
+            guard let it = worn[slot] else { continue }
+            ctx.saveGState()
+            switch it.id {
+            case "beanie":
+                ctx.translateBy(x: a.top.x, y: a.top.y - 7 * k); ctx.scaleBy(x: k, y: k)
+                let cap = CGMutablePath(); cap.move(to: CGPoint(x: -22, y: 0)); cap.addCurve(to: CGPoint(x: 22, y: 0), control1: CGPoint(x: -22, y: 26), control2: CGPoint(x: 22, y: 26)); cap.closeSubpath()
+                fillStroke(ctx, cap, CGColor(red: 0.95, green: 0.42, blue: 0.45, alpha: 1), width: 1.8)
+                ctx.saveGState(); ctx.addPath(cap); ctx.clip()
+                ctx.setStrokeColor(CGColor(red: 0.8, green: 0.3, blue: 0.35, alpha: 1)); ctx.setLineWidth(1.4)
+                for x in stride(from: -16.0, through: 16.0, by: 6.0) { ctx.move(to: CGPoint(x: x, y: 2)); ctx.addLine(to: CGPoint(x: x * 0.8, y: 20)) }
+                ctx.strokePath(); ctx.restoreGState()
+                fillStroke(ctx, CGPath(roundedRect: CGRect(x: -24, y: -4, width: 48, height: 8), cornerWidth: 4, cornerHeight: 4, transform: nil), CGColor(red: 1, green: 0.95, blue: 0.9, alpha: 1), width: 1.6)
+                fillStroke(ctx, ellipse(0, 22, 10, 10), CGColor(red: 1, green: 0.97, blue: 0.94, alpha: 1), width: 1.6)
+            case "party":
+                ctx.translateBy(x: a.top.x + 4 * k, y: a.top.y - 4 * k); ctx.rotate(by: -0.18); ctx.scaleBy(x: k, y: k)
+                let cone = CGMutablePath(); cone.move(to: CGPoint(x: -11, y: 0)); cone.addLine(to: CGPoint(x: 11, y: 0)); cone.addLine(to: CGPoint(x: 0, y: 30)); cone.closeSubpath()
+                fillStroke(ctx, cone, CGColor(red: 0.55, green: 0.75, blue: 1, alpha: 1), width: 1.6)
+                ctx.saveGState(); ctx.addPath(cone); ctx.clip()
+                ctx.setStrokeColor(CGColor(red: 1, green: 0.85, blue: 0.3, alpha: 1)); ctx.setLineWidth(3)
+                for y in [6.0, 14.0, 22.0] as [CGFloat] { ctx.move(to: CGPoint(x: -12, y: y)); ctx.addLine(to: CGPoint(x: 12, y: y + 5)) }
+                ctx.strokePath(); ctx.restoreGState()
+                fillStroke(ctx, ellipse(0, 31, 7, 7), CGColor(red: 1, green: 0.5, blue: 0.6, alpha: 1), width: 1.4)
+            case "crown":
+                ctx.translateBy(x: a.top.x, y: a.top.y - 4 * k); ctx.scaleBy(x: k, y: k)
+                let cr = CGMutablePath()
+                cr.move(to: CGPoint(x: -14, y: 0)); cr.addLine(to: CGPoint(x: -16, y: 14)); cr.addLine(to: CGPoint(x: -8, y: 7)); cr.addLine(to: CGPoint(x: 0, y: 18))
+                cr.addLine(to: CGPoint(x: 8, y: 7)); cr.addLine(to: CGPoint(x: 16, y: 14)); cr.addLine(to: CGPoint(x: 14, y: 0)); cr.closeSubpath()
+                fillStroke(ctx, cr, CGColor(red: 1, green: 0.82, blue: 0.25, alpha: 1), width: 1.6)
+                for (x, y, c) in [(-16.0, 14.0, CGColor(red: 0.3, green: 0.6, blue: 1, alpha: 1)), (0, 18, CGColor(red: 1, green: 0.35, blue: 0.45, alpha: 1)), (16, 14, CGColor(red: 0.4, green: 0.85, blue: 0.5, alpha: 1))] as [(CGFloat, CGFloat, CGColor)] {
+                    fillStroke(ctx, ellipse(x, y, 5, 5), c, width: 1.2)
+                }
+            case "ribbon":
+                ctx.translateBy(x: a.top.x - a.headW * 0.28, y: a.top.y - 3 * k); ctx.rotate(by: 0.3); ctx.scaleBy(x: k, y: k)
+                let red = CGColor(red: 0.95, green: 0.3, blue: 0.42, alpha: 1)
+                fillStroke(ctx, ellipse(-8, 0, 15, 11, rot: 0.4), red, width: 1.6); fillStroke(ctx, ellipse(8, 0, 15, 11, rot: -0.4), red, width: 1.6)
+                fillStroke(ctx, ellipse(0, 0, 7, 7), red, width: 1.6)
+            case "flower":
+                ctx.translateBy(x: a.top.x + a.headW * 0.3, y: a.top.y - 2 * k); ctx.scaleBy(x: k, y: k)
+                for i in 0..<5 { let ang = Double(i) / 5 * 2 * .pi; fillStroke(ctx, ellipse(CGFloat(cos(ang)) * 6, CGFloat(sin(ang)) * 6, 9, 9), CGColor(red: 1, green: 0.8, blue: 0.9, alpha: 1), width: 1.2) }
+                fillStroke(ctx, ellipse(0, 0, 7, 7), CGColor(red: 1, green: 0.85, blue: 0.3, alpha: 1), width: 1.2)
+            case "headphones":
+                let cupY = a.top.y - a.headW * 0.42, half = a.headW * 0.58
+                let band = CGMutablePath(); band.move(to: CGPoint(x: a.top.x - half, y: cupY)); band.addCurve(to: CGPoint(x: a.top.x + half, y: cupY), control1: CGPoint(x: a.top.x - half, y: a.top.y + 10 * k), control2: CGPoint(x: a.top.x + half, y: a.top.y + 10 * k))
+                ctx.addPath(band); ctx.setStrokeColor(inkColor); ctx.setLineWidth(6 * k); ctx.strokePath()
+                ctx.addPath(band); ctx.setStrokeColor(CGColor(red: 0.35, green: 0.4, blue: 0.55, alpha: 1)); ctx.setLineWidth(3.6 * k); ctx.strokePath()
+                for sx in [-1.0, 1.0] as [CGFloat] { fillStroke(ctx, ellipse(a.top.x + sx * half, cupY, 11 * k, 15 * k), CGColor(red: 0.95, green: 0.55, blue: 0.4, alpha: 1), width: 1.8) }
+            case "sunglasses", "glasses", "heartglasses":
+                guard let (l, r) = a.eyes else { break }
+                let sz = a.eyeSize * 1.5
+                for e in [l, r] {
+                    switch it.id {
+                    case "sunglasses":
+                        let lens = CGPath(roundedRect: CGRect(x: e.x - sz * 0.62, y: e.y - sz * 0.42, width: sz * 1.24, height: sz * 0.84), cornerWidth: sz * 0.3, cornerHeight: sz * 0.3, transform: nil)
+                        fillStroke(ctx, lens, CGColor(red: 0.12, green: 0.12, blue: 0.16, alpha: 1), width: 1.6)
+                        ctx.setFillColor(CGColor(gray: 1, alpha: 0.55)); ctx.fillEllipse(in: CGRect(x: e.x - sz * 0.4, y: e.y + sz * 0.05, width: sz * 0.35, height: sz * 0.2))
+                    case "glasses":
+                        ctx.addPath(ellipse(e.x, e.y, sz * 1.1, sz * 1.1)); ctx.setStrokeColor(inkColor); ctx.setLineWidth(1.8); ctx.strokePath()
+                        ctx.setFillColor(CGColor(gray: 1, alpha: 0.25)); ctx.fillEllipse(in: CGRect(x: e.x - sz * 0.55, y: e.y - sz * 0.55, width: sz * 1.1, height: sz * 1.1))
+                    default:
+                        let h = CGMutablePath(); let s2 = sz * 0.6
+                        h.move(to: CGPoint(x: e.x, y: e.y - s2 * 0.9))
+                        h.addCurve(to: CGPoint(x: e.x, y: e.y + s2 * 0.5), control1: CGPoint(x: e.x - s2 * 1.4, y: e.y), control2: CGPoint(x: e.x - s2 * 0.8, y: e.y + s2 * 1.3))
+                        h.addCurve(to: CGPoint(x: e.x, y: e.y - s2 * 0.9), control1: CGPoint(x: e.x + s2 * 0.8, y: e.y + s2 * 1.3), control2: CGPoint(x: e.x + s2 * 1.4, y: e.y))
+                        fillStroke(ctx, h, CGColor(red: 1, green: 0.4, blue: 0.6, alpha: 0.9), width: 1.6)
+                    }
+                }
+                ctx.setStrokeColor(inkColor); ctx.setLineWidth(1.8)
+                ctx.move(to: CGPoint(x: l.x + sz * 0.5, y: l.y + sz * 0.1)); ctx.addLine(to: CGPoint(x: r.x - sz * 0.5, y: r.y + sz * 0.1)); ctx.strokePath()
+            case "bowtie":
+                ctx.translateBy(x: a.neck.x, y: a.neck.y); ctx.scaleBy(x: k, y: k)
+                let c = CGColor(red: 0.9, green: 0.25, blue: 0.3, alpha: 1)
+                let lw = CGMutablePath(); lw.move(to: CGPoint(x: 0, y: 0)); lw.addLine(to: CGPoint(x: -12, y: 7)); lw.addLine(to: CGPoint(x: -12, y: -7)); lw.closeSubpath()
+                let rw = CGMutablePath(); rw.move(to: CGPoint(x: 0, y: 0)); rw.addLine(to: CGPoint(x: 12, y: 7)); rw.addLine(to: CGPoint(x: 12, y: -7)); rw.closeSubpath()
+                fillStroke(ctx, lw, c, width: 1.6); fillStroke(ctx, rw, c, width: 1.6); fillStroke(ctx, ellipse(0, 0, 6, 6), c, width: 1.4)
+            case "scarf":
+                let band = CGPath(roundedRect: CGRect(x: a.neck.x - a.neckW / 2, y: a.neck.y - 4 * k, width: a.neckW, height: 8 * k), cornerWidth: 4 * k, cornerHeight: 4 * k, transform: nil)
+                let tail = CGPath(roundedRect: CGRect(x: a.neck.x + a.neckW * 0.18, y: a.neck.y - 16 * k, width: 8 * k, height: 14 * k), cornerWidth: 3 * k, cornerHeight: 3 * k, transform: nil)
+                let green = CGColor(red: 0.35, green: 0.7, blue: 0.45, alpha: 1)
+                fillStroke(ctx, tail, green, width: 1.6); fillStroke(ctx, band, green, width: 1.6)
+                ctx.saveGState(); ctx.addPath(band); ctx.addPath(tail); ctx.clip()
+                ctx.setStrokeColor(CGColor(red: 1, green: 0.95, blue: 0.85, alpha: 1)); ctx.setLineWidth(2 * k)
+                for x in stride(from: a.neck.x - a.neckW / 2, through: a.neck.x + a.neckW / 2, by: 7 * k) { ctx.move(to: CGPoint(x: x, y: a.neck.y - 18 * k)); ctx.addLine(to: CGPoint(x: x + 4 * k, y: a.neck.y + 6 * k)) }
+                ctx.strokePath(); ctx.restoreGState()
+            case "mic":
+                ctx.translateBy(x: a.hand.x, y: a.hand.y); ctx.rotate(by: -0.35); ctx.scaleBy(x: k, y: k)
+                fillStroke(ctx, CGPath(roundedRect: CGRect(x: -2.5, y: -12, width: 5, height: 16), cornerWidth: 2, cornerHeight: 2, transform: nil), CGColor(red: 0.25, green: 0.25, blue: 0.3, alpha: 1), width: 1.4)
+                fillStroke(ctx, ellipse(0, 7, 10, 10), CGColor(red: 0.82, green: 0.82, blue: 0.88, alpha: 1), width: 1.6)
+            case "coffee":
+                ctx.translateBy(x: a.hand.x, y: a.hand.y); ctx.scaleBy(x: k, y: k)
+                fillStroke(ctx, CGPath(roundedRect: CGRect(x: -6, y: -8, width: 12, height: 13), cornerWidth: 3, cornerHeight: 3, transform: nil), CGColor(red: 1, green: 0.98, blue: 0.95, alpha: 1), width: 1.5)
+                ctx.addPath(ellipse(7, -2, 5, 6)); ctx.setStrokeColor(inkColor); ctx.setLineWidth(1.5); ctx.strokePath()
+                ctx.setFillColor(CGColor(red: 0.55, green: 0.35, blue: 0.2, alpha: 1)); ctx.fillEllipse(in: CGRect(x: -5, y: 2, width: 10, height: 3))
+                let ph = CGFloat(sin(t * 2)) * 1.5
+                ctx.setStrokeColor(CGColor(gray: 0.6, alpha: 0.7)); ctx.setLineWidth(1.2)
+                ctx.move(to: CGPoint(x: -2, y: 7)); ctx.addQuadCurve(to: CGPoint(x: -2, y: 14), control: CGPoint(x: 1 + ph, y: 10)); ctx.strokePath()
+            case "balloon":
+                let sway = CGFloat(sin(t * 1.4)) * 3
+                let top = CGPoint(x: a.hand.x + 10 * k + sway, y: a.hand.y + 42 * k)
+                ctx.setStrokeColor(inkColor.copy(alpha: 0.7)!); ctx.setLineWidth(1)
+                ctx.move(to: a.hand); ctx.addQuadCurve(to: CGPoint(x: top.x, y: top.y - 11 * k), control: CGPoint(x: a.hand.x + 14 * k, y: a.hand.y + 18 * k)); ctx.strokePath()
+                fillStroke(ctx, ellipse(top.x, top.y, 18 * k, 22 * k), CGColor(red: 1, green: 0.45, blue: 0.5, alpha: 1), width: 1.6)
+                ctx.setFillColor(CGColor(gray: 1, alpha: 0.6)); ctx.fillEllipse(in: CGRect(x: top.x - 5 * k, y: top.y + 3 * k, width: 5 * k, height: 6 * k))
+            default: break
+            }
+            ctx.restoreGState()
+        }
+    }
+
+    func petFaceKnown() -> Bool { pack == nil || pack?.info.anchors?.eyes != nil }
+
     // 변신해도 남는 표시: 둔갑이는 나뭇잎, 팩은 disguise.tell 그림
     func drawTell(_ ctx: CGContext, height: CGFloat, realPack: Pack?, realCreature: Creature) {
         if realPack == nil {
@@ -991,57 +1196,128 @@ final class PetView: NSView {
     // 펫 오른쪽 클릭 메뉴와 메뉴 막대 아이콘 메뉴가 같이 쓴다
     func buildMenu(forStatusBar: Bool) -> NSMenu {
         let menu = NSMenu()
-        if forStatusBar {
-            let toggle = NSMenuItem(title: petVisible ? "펫 숨기기" : "펫 보이기", action: #selector(toggleVisible), keyEquivalent: "")
-            toggle.target = self
-            menu.addItem(toggle)
-            menu.addItem(.separator())
+        func add(_ title: String, _ sel: Selector?, on: Bool? = nil, key: String = "", to m: NSMenu? = nil) {
+            let item = NSMenuItem(title: title, action: sel, keyEquivalent: key)
+            item.target = self
+            if let on { item.state = on ? .on : .off }
+            if sel == nil { item.isEnabled = false }
+            (m ?? menu).addItem(item)
         }
-        let reset = NSMenuItem(title: "구석으로 보내기", action: #selector(resetPosition), keyEquivalent: "")
-        reset.target = self
-        menu.addItem(reset)
+        func folder(_ title: String, _ m: NSMenu) { let item = NSMenuItem(title: title, action: nil, keyEquivalent: ""); item.submenu = m; menu.addItem(item) }
+
+        // 맨 위: 지금 펫
+        let name = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+        name.attributedTitle = NSAttributedString(string: pack?.info.name ?? creature.name, attributes: [.font: NSFont.boldSystemFont(ofSize: 13)])
+        name.isEnabled = false
+        menu.addItem(name)
+        if let pack, let credit = pack.info.credit, !credit.isEmpty {
+            let line = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+            line.attributedTitle = NSAttributedString(string: [credit, pack.info.license].compactMap { $0 }.joined(separator: " · "),
+                                                      attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor])
+            line.isEnabled = false
+            menu.addItem(line)
+        }
+        if forStatusBar { add(petVisible ? "펫 숨기기" : "펫 보이기", #selector(toggleVisible)) }
+        menu.addItem(.separator())
+
+        // 펫 꾸미기
         menu.addItem(packMenuItem())
-        let lines = NSMenuItem(title: "대사 바꾸기…", action: #selector(editLines), keyEquivalent: "")
-        lines.target = self
-        menu.addItem(lines)
+        menu.addItem(itemMenuItem())
         menu.addItem(sizeMenuItem())
         menu.addItem(.separator())
+
+        // 자리
         if !forStatusBar || petVisible {
-            for (title, sel) in [("숨기기", #selector(hidePet)), ("30분 동안 숨기기", #selector(hidePet30))] {
-                let item = NSMenuItem(title: title, action: sel, keyEquivalent: "")
-                item.target = self
-                menu.addItem(item)
-            }
+            let hide = NSMenu()
+            add("지금 숨기기", #selector(hidePet), to: hide)
+            add("30분 동안 숨기기", #selector(hidePet30), to: hide)
+            hide.addItem(.separator())
+            add(statusBarOn() ? "다시 부르기: 메뉴 막대의 🌱 아이콘" : "다시 부르기: CLIPet 다시 열기 또는 cli-pet show", nil, to: hide)
+            folder("숨기기", hide)
         }
-        let hint = NSMenuItem(title: statusBarOn() ? "다시 부르기: 메뉴 막대의 🌱 아이콘" : "다시 부르기: CLIPet 다시 열기 또는 cli-pet show",
-                              action: nil, keyEquivalent: "")
-        hint.isEnabled = false
-        menu.addItem(hint)
-        if let pack, let credit = pack.info.credit {
-            let line = [credit, pack.info.license].compactMap { $0 }.joined(separator: " · ")
-            let info = NSMenuItem(title: "그림: " + line, action: nil, keyEquivalent: "")
-            info.isEnabled = false
-            menu.addItem(info)
-        }
+        add("구석으로 보내기", #selector(resetPosition))
         menu.addItem(.separator())
-        menu.addItem(connectMenuItem())
-        let login = NSMenuItem(title: "로그인할 때 자동 실행", action: #selector(toggleLogin), keyEquivalent: "")
-        login.target = self
-        login.state = loginItemOn() ? .on : .off
-        menu.addItem(login)
-        for (title, key, sel) in [("일상 대사", "daily", #selector(toggleDaily)), ("돌아다니기", "walk", #selector(toggleWalk))] {
-            let item = NSMenuItem(title: title, action: sel, keyEquivalent: "")
-            item.target = self
-            item.state = (loadSettings()[key] as? Bool ?? true) ? .on : .off
-            menu.addItem(item)
-        }
-        let bar = NSMenuItem(title: "메뉴 막대에 아이콘 보이기", action: #selector(toggleStatusBar), keyEquivalent: "")
-        bar.target = self
-        bar.state = statusBarOn() ? .on : .off
-        menu.addItem(bar)
+
+        // 설정
+        let settings = NSMenu()
+        add("대사 바꾸기…", #selector(editLines), to: settings)
+        add("일상 대사", #selector(toggleDaily), on: dailyOn(), to: settings)
+        add("돌아다니기", #selector(toggleWalk), on: walkOn(), to: settings)
+        settings.addItem(.separator())
+        settings.addItem(connectMenuItem())
+        add("로그인할 때 자동 실행", #selector(toggleLogin), on: loginItemOn(), to: settings)
+        add("메뉴 막대에 아이콘 보이기", #selector(toggleStatusBar), on: statusBarOn(), to: settings)
+        folder("설정", settings)
+
+        // 도움말
+        let help = NSMenu()
+        add("크레딧 보기…", #selector(openCredits), to: help)
+        add("커스텀 팩 만드는 법…", #selector(openPackHelp), to: help)
+        add("다른 AI 도구 연결하는 법…", #selector(openIntegrations), to: help)
+        folder("도움말", help)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: ""))
+
+        let quit = NSMenuItem(title: "CLIPet 종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(quit)
         return menu
+    }
+
+    // 아이템 ▸ 머리 / 얼굴 / 목 / 손 ▸ 아이템들
+    func itemMenuItem() -> NSMenuItem {
+        let petID = pack?.info.id ?? creature.id
+        let worn = wornItems(petID)
+        let root = NSMenu()
+        for slot in ItemSlot.allCases {
+            let sub = NSMenu()
+            let none = NSMenuItem(title: "없음", action: #selector(pickItem(_:)), keyEquivalent: "")
+            none.target = self
+            none.representedObject = [slot.rawValue, ""]
+            none.state = worn[slot] == nil ? .on : .off
+            sub.addItem(none)
+            sub.addItem(.separator())
+            let faceOK = slot != .face || petFaceKnown()
+            for it in items where it.slot == slot {
+                let item = NSMenuItem(title: it.name, action: faceOK ? #selector(pickItem(_:)) : nil, keyEquivalent: "")
+                item.target = self
+                item.representedObject = [slot.rawValue, it.id]
+                item.state = worn[slot]?.id == it.id ? .on : .off
+                sub.addItem(item)
+            }
+            if !faceOK {
+                sub.addItem(.separator())
+                let note = NSMenuItem(title: "이 펫은 눈 위치를 몰라서 얼굴 아이템을 못 써요", action: nil, keyEquivalent: "")
+                note.isEnabled = false
+                sub.addItem(note)
+            }
+            let item = NSMenuItem(title: slot.label + (worn[slot].map { " · \($0.name)" } ?? ""), action: nil, keyEquivalent: "")
+            item.submenu = sub
+            root.addItem(item)
+        }
+        root.addItem(.separator())
+        let off = NSMenuItem(title: "모두 벗기기", action: worn.isEmpty ? nil : #selector(clearItems), keyEquivalent: "")
+        off.target = self
+        root.addItem(off)
+        let item = NSMenuItem(title: "아이템", action: nil, keyEquivalent: "")
+        item.submenu = root
+        if !worn.isEmpty { item.state = .on }
+        return item
+    }
+
+    @objc func pickItem(_ sender: NSMenuItem) {
+        guard let v = sender.representedObject as? [String], v.count == 2, let slot = ItemSlot(rawValue: v[0]) else { return }
+        wear(slot, v[1].isEmpty ? nil : v[1])
+    }
+
+    func wear(_ slot: ItemSlot, _ itemID: String?) {
+        setWorn(pack?.info.id ?? creature.id, slot, itemID)
+        if let id = itemID, let it = items.first(where: { $0.id == id }) {
+            jumpAt = t
+            sayLine("item.wear", ["item": it.name], for: 2.5)
+        }
+    }
+
+    @objc func clearItems() {
+        for slot in ItemSlot.allCases { setWorn(pack?.info.id ?? creature.id, slot, nil) }
     }
 
     @objc func toggleDaily() {
@@ -1158,13 +1434,6 @@ final class PetView: NSView {
         let open = NSMenuItem(title: "커스텀 팩 폴더 열기…", action: #selector(openUserPacks), keyEquivalent: "")
         open.target = self
         root.addItem(open)
-        let help = NSMenuItem(title: "커스텀 팩 만드는 법…", action: #selector(openPackHelp), keyEquivalent: "")
-        help.target = self
-        root.addItem(help)
-        root.addItem(.separator())
-        let credits = NSMenuItem(title: "크레딧 보기…", action: #selector(openCredits), keyEquivalent: "")
-        credits.target = self
-        root.addItem(credits)
         let item = NSMenuItem(title: "펫 바꾸기", action: nil, keyEquivalent: "")
         item.submenu = root
         return item
@@ -1290,10 +1559,6 @@ final class PetView: NSView {
             if case .viaClaude = t.kind { item.action = nil; item.isEnabled = false }
             sub.addItem(item)
         }
-        sub.addItem(.separator())
-        let help = NSMenuItem(title: "다른 도구 연결하는 법…", action: #selector(openIntegrations), keyEquivalent: "")
-        help.target = self
-        sub.addItem(help)
         let item = NSMenuItem(title: "AI 도구 연결", action: nil, keyEquivalent: "")
         item.submenu = sub
         if targets.contains(where: isConnected) { item.state = .on }
@@ -1433,7 +1698,11 @@ final class PetView: NSView {
         } else {
             drawBody(ctx, dizzy: dizzy, happy: happy)
         }
-        if disguiseID != nil { drawTell(ctx, height: base.height, realPack: realPack, realCreature: realCreature) }
+        if disguiseID != nil {
+            drawTell(ctx, height: base.height, realPack: realPack, realCreature: realCreature)
+        } else {
+            drawItems(ctx, height: base.height, petID: realPack?.info.id ?? realCreature.id)
+        }
         ctx.restoreGState()
         drawPoof(ctx, base)
 
@@ -2722,6 +2991,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case "show": view.show()
         case "hide": view.hide(for: nil)
         case "statusbar": updateStatusItem()
+        case _ where cmd.hasPrefix("item:"):
+            let parts = cmd.split(separator: ":", omittingEmptySubsequences: false).map(String.init)
+            if parts.count == 3, let slot = ItemSlot(rawValue: parts[1]) { view.wear(slot, parts[2].isEmpty ? nil : parts[2]) }
         case "disguise":
             if view.canDisguise { if view.disguiseID == nil { view.startDisguise() } else { view.endDisguise(reveal: true) } }
             else { view.say("나는 변신 못 해…", 2) }
@@ -2751,6 +3023,7 @@ let usage = """
   cli-pet            펫 띄우기 (이 터미널에 붙어서 실행)
   cli-pet start      펫 띄우기 (터미널과 분리)
   cli-pet show / hide  펫 보이기 / 숨기기
+  cli-pet item [list | <head|face|neck|hand> <아이템|none>]  지금 펫에게 아이템 씌우기
   cli-pet disguise     변신하는 펫을 바로 변신시키기 (한 번 더 하면 원래대로)
   cli-pet menubar on|off  메뉴 막대 아이콘 켜기 / 끄기
   cli-pet size <작게|보통|크게|아주크게|배율>  펫 크기
@@ -2830,6 +3103,23 @@ case "show":
     }
 case "hide":
     postCommand("hide")
+case "item":
+    // cli-pet item list | cli-pet item <자리> <아이템|none>  (지금 고른 펫에게)
+    let petID = loadSelectedPackID()
+    if args.count < 3 {
+        print("아이템 (cli-pet item <자리> <아이템|none>) — 지금 펫: \(petID)")
+        let worn = wornItems(petID)
+        for slot in ItemSlot.allCases {
+            let names = items.filter { $0.slot == slot }.map { ($0.id == worn[slot]?.id ? "✓" : "") + $0.id }
+            print("  \(slot.rawValue.padding(toLength: 5, withPad: " ", startingAt: 0)) \(slot.label): " + names.joined(separator: ", "))
+        }
+        exit(args.count == 2 && args[1] == "list" ? 0 : 1)
+    }
+    guard let slot = ItemSlot(rawValue: args[1]) else { print("✗ 자리는 head, face, neck, hand 중 하나예요"); exit(1) }
+    let id = args[2] == "none" ? nil : args[2]
+    if let id, !items.contains(where: { $0.id == id && $0.slot == slot }) { print("✗ \(slot.label) 자리에 그런 아이템이 없어요: \(id)"); exit(1) }
+    if petIsRunning() { postCommand("item:\(slot.rawValue):\(id ?? "")") } else { setWorn(petID, slot, id) }
+    print(id.map { "✓ \(slot.label)에 \($0)" } ?? "✓ \(slot.label) 아이템 벗김")
 case "disguise":
     // 변신하는 펫(둔갑이, disguise가 있는 팩)을 바로 변신시키거나 되돌린다
     postCommand("disguise")
