@@ -2403,7 +2403,7 @@ func packCheck(_ arg: String) -> Int32 {
     if info.poses["normal"] == nil { print("  ✗ normal 포즈는 꼭 있어야 해요"); ok = false }
     let missing = requiredPoses.filter { info.poses[$0] == nil }
     if !missing.isEmpty { print("  없는 필수 포즈는 비슷한 포즈로 대신해요 (docs/animation-spec.md).") }
-    print(ok ? "✓ 앱에서 쓸 수 있어요. 펫 오른쪽 클릭 → 펫 바꾸기 → 커스텀 팩" : "✗ 위 문제를 고쳐 주세요")
+    print(ok ? "✓ 앱에서 쓸 수 있어요. 펫 오른쪽 클릭 → 펫 바꾸기 → " + (info.extra == true ? "기본 팩" : "커스텀 팩") : "✗ 위 문제를 고쳐 주세요")
     return ok ? 0 : 1
 }
 
