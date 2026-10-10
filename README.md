@@ -163,6 +163,9 @@ cli-pet pack check anime-myseries-mychar                      # 검사
 
 ## 문서
 
+- [CHANGELOG.md](CHANGELOG.md) — 버전별 변경 기록
+- [docs/decisions.md](docs/decisions.md) — 주요 결정과 이유
+- [docs/todo.md](docs/todo.md) — 남은 일과 다음 기능 후보
 - [docs/integrations.md](docs/integrations.md) — AI 도구·IDE 연결
 - [docs/lines.md](docs/lines.md) — 상황별 대사 바꾸기
 - [docs/custom-packs.md](docs/custom-packs.md) — 커스텀 팩 만들기
